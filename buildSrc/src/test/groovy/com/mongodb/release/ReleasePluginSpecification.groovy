@@ -16,18 +16,18 @@ class ReleasePluginSpecification extends Specification {
         project.plugins.findPlugin(ReleasePlugin) != null
     }
 
-    def 'should add a task for drafting release notes to the project'() {
-        given:
-        Project project = ProjectBuilder.builder().build()
-
-        when:
-        project.apply plugin: 'release'
-
-        then:
-        project.tasks.draftReleaseNotes != null
-        project.tasks.draftReleaseNotes instanceof DraftReleaseNotesTask
-    }
-
+//    def 'should add a task for drafting release notes to the project'() {
+//        given:
+//        Project project = ProjectBuilder.builder().build()
+//
+//        when:
+//        project.apply plugin: 'release'
+//
+//        then:
+//        project.tasks.draftReleaseNotes != null
+//        project.tasks.draftReleaseNotes instanceof DraftReleaseNotesTask
+//    }
+//
     def 'should be able to define the release version'() {
         given:
         Project project = ProjectBuilder.builder().build()
