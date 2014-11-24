@@ -16,7 +16,11 @@
 
 def nettyVersion = '4.0.19.Final'
 
-apply plugin: 'osgi'
+dependencies {
+    compile project(':bson')
+
+    provided "io.netty:netty-all:$nettyVersion"
+}
 
 jar {
     manifest.attributes(
@@ -28,19 +32,9 @@ jar {
             )
 }
 
-dependencies {
-    compile project(':bson')
-
-    provided "io.netty:netty-all:$nettyVersion"
-}
-
-task uberJar(type: Jar) {
-    classifier = 'all'
-    from project(':bson').sourceSets.main.output
-    from sourceSets.main.output
-}
-
-uberJar {
-    manifest = jar.manifest //not sure, may be we need to include 'Export-Package' from :bson as well
+shadowJar {
+    dependencies {
+        exclude(dependency('io.netty:netty-all'))
+    }
 }
 

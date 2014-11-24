@@ -5,7 +5,7 @@ import org.gradle.api.Project
 
 /**
  * Inspired originally by this <a href="https://github.com/trnl/github-release-gradle-plugin/">Release Plugin</a>.  This co-ordinates the
- * tasks that make up the steps of Morphia's automated release process.
+ * tasks that make up the steps of the Java driver's automated release process.
  *
  * This uses the following plugins & libraries<ol>
  * <li><a href="https://github.com/bmuschko/gradle-nexus-plugin">Nexus plugin</a></li>
