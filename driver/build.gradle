@@ -60,3 +60,4 @@ shadowJar {
         exclude(dependency('io.netty:netty-all'))
     }
 }
+

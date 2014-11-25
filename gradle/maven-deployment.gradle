@@ -32,6 +32,7 @@ configure(subprojects.findAll { it.name != 'util' }) {
     artifacts {
         archives sourcesJar
         archives javadocJar
+        archives shadowJar
     }
 
     signing {
@@ -129,4 +130,4 @@ project(':driver') {
             url 'http://www.mongodb.org'
         }
     }
-}
+    }
