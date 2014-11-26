@@ -19,7 +19,7 @@ configure(subprojects.findAll { it.name != 'util' }) {
 
     publishing {
         publications {
-            mavenJava(MavenPublication) {
+            maven(MavenPublication) {
                 artifact sourceJar 
                 artifact javadocJar
                 // shadowJar builds the uberjar of the code from the module and all the modules it's dependent upon
@@ -73,11 +73,6 @@ configure(subprojects.findAll { it.name != 'util' }) {
 //                    organization = '10gen'
 //                }
 //            }
-//        }
-//
-//        whenConfigured { resultPom ->
-//            resultPom.dependencies.removeAll { dep -> dep.scope != 'compile' }
-//            resultPom.dependencies*.scope = null
 //        }
 //    }
 
