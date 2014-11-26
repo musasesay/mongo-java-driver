@@ -73,7 +73,9 @@ configure(subprojects.findAll { it.name != 'util' }) {
     }
 }
 
-
+//
+// Configure the specific values for the published pom files for each project
+//
 project(':bson') {
     publishing {
         publications {
