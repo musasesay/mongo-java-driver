@@ -1,0 +1,84 @@
+// uses maven-publish to upload the artifacts to nexus
+// called using /.gradlew publish
+// see http://www.gradle.org/docs/current/userguide/publishing_maven.html for more details.
+
+configure(subprojects.findAll { it.name != 'util' }) {
+    apply plugin: 'maven-publish'
+    apply plugin: 'signing'
+
+    /* Artifacts for publishing */
+    task sourceJar(type: Jar) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    task javadocJar(type: Jar) {
+        classifier = 'javadoc'
+        from javadoc
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                artifact sourceJar 
+                artifact javadocJar
+                // shadowJar builds the uberjar of the code from the module and all the modules it's dependent upon
+                // i.e. for "driver" this includes classes for driver + driver-core + bson
+                artifact shadowJar
+                // if you want to only publish the module code and not the uber jar, uncomment the line below
+                // from components.java
+            }
+        }
+    }
+
+    publishing {
+        repositories {
+            maven {
+                // change to point to your repo, e.g. http://my.org/repo
+                url "$buildDir/repo"
+//                def sonatypeCredentials = [
+//                        userName: project.properties.sonatypeUsername,
+//                        password: project.properties.sonatypePassword
+//                ]
+//
+//                snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots') {
+//                    authentication(sonatypeCredentials)
+//                }
+//                repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
+//                    authentication(sonatypeCredentials)
+//                }
+
+            }
+        }
+    }
+
+//    pom {
+//        project {
+//            scm {
+//                url 'https://github.com/mongodb/mongo-java-driver'
+//                connection 'scm:git:git://github.com/mongodb/mongo-java-driver'
+//            }
+//
+//            licenses {
+//                license {
+//                    name 'The Apache Software License, Version 2.0'
+//                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+//                    distribution 'repo'
+//                }
+//            }
+//
+//            developers {
+//                developer {
+//                    name 'Various'
+//                    organization = '10gen'
+//                }
+//            }
+//        }
+//
+//        whenConfigured { resultPom ->
+//            resultPom.dependencies.removeAll { dep -> dep.scope != 'compile' }
+//            resultPom.dependencies*.scope = null
+//        }
+//    }
+
+}
