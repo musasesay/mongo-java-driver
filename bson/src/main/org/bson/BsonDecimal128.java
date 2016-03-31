@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2015 MongoDB, Inc.
+ * Copyright 2016 MongoDB, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,62 +18,37 @@ package org.bson;
 
 import org.bson.types.Decimal128;
 
-import java.math.BigDecimal;
+import static org.bson.assertions.Assertions.notNull;
 
 /**
- * A representation of the BSON Int32 type.
+ * A representation of the BSON Decimal128 type.
  *
- * @since 3.0
+ * @since 3.4
  */
-public final class BsonInt32 extends BsonNumber implements Comparable<BsonInt32> {
-
-    private final int value;
+public final class BsonDecimal128 extends BsonNumber {
+    private final Decimal128 value;
 
     /**
      * Construct a new instance with the given value.
      *
-     * @param value the value
+     * @param value the value, which may not be null
      */
-    public BsonInt32(final int value) {
+    public BsonDecimal128(final Decimal128 value) {
+        notNull("value", value);
         this.value = value;
     }
 
     @Override
-    public int compareTo(final BsonInt32 o) {
-        return (value < o.value) ? -1 : ((value == o.value) ? 0 : 1);
-    }
-
-    @Override
     public BsonType getBsonType() {
-        return BsonType.INT32;
+        return BsonType.DECIMAL128;
     }
 
     /**
-     * Gets the integer value.
+     * Gets the Decimal128 value.
      *
      * @return the value
      */
-    public int getValue() {
-        return value;
-    }
-
-    @Override
-    public int intValue() {
-        return value;
-    }
-
-    @Override
-    public long longValue() {
-        return value;
-    }
-
-    @Override
-    public Decimal128 decimal128Value() {
-        return Decimal128.valueOf(new BigDecimal(value));
-    }
-
-    @Override
-    public double doubleValue() {
+    public Decimal128 getValue() {
         return value;
     }
 
@@ -86,9 +61,9 @@ public final class BsonInt32 extends BsonNumber implements Comparable<BsonInt32>
             return false;
         }
 
-        BsonInt32 bsonInt32 = (BsonInt32) o;
+        BsonDecimal128 that = (BsonDecimal128) o;
 
-        if (value != bsonInt32.value) {
+        if (!value.equals(that.value)) {
             return false;
         }
 
@@ -97,13 +72,26 @@ public final class BsonInt32 extends BsonNumber implements Comparable<BsonInt32>
 
     @Override
     public int hashCode() {
-        return value;
+        return value.hashCode();
     }
 
     @Override
-    public String toString() {
-        return "BsonInt32{"
-               + "value=" + value
-               + '}';
+    public int intValue() {
+        return value.bigDecimalValue().intValue();
+    }
+
+    @Override
+    public long longValue() {
+        return value.bigDecimalValue().longValue();
+    }
+
+    @Override
+    public double doubleValue() {
+        return value.bigDecimalValue().doubleValue();
+    }
+
+    @Override
+    public Decimal128 decimal128Value() {
+        return value;
     }
 }
