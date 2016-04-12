@@ -159,8 +159,8 @@ class Decimal128Specification extends Specification {
 
     def 'should convert infinity to string'() {
         expect:
-        POSITIVE_INFINITY.toString() == 'Inf'
-        NEGATIVE_INFINITY.toString() == '-Inf'
+        POSITIVE_INFINITY.toString() == 'Infinity'
+        NEGATIVE_INFINITY.toString() == '-Infinity'
     }
 
     def 'should convert infinity from string'() {

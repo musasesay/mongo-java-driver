@@ -333,9 +333,9 @@ public final class Decimal128 implements Serializable {
         }
         if (isInfinite()) {
             if (isNegative()) {
-                return "-Inf";
+                return "-Infinity";
             } else {
-                return "Inf";
+                return "Infinity";
             }
         }
         return toStringWithBigDecimal();
