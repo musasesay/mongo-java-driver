@@ -21,6 +21,7 @@ import org.bson.codecs.BsonDocumentCodec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.bson.io.BasicOutputBuffer;
+import org.bson.types.Decimal128;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -37,7 +38,6 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static org.bson.BsonDocument.parse;
-import static org.bson.types.Decimal128.valueOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -94,7 +94,7 @@ public class GenericBsonDecimal128Test {
         if (testCase.getBoolean("from_extjson", BsonBoolean.TRUE).getValue()) {
             assertEquals(String.format("Failed to parse expected decimal '%s' with description '%s'", stringValue,
                     testCase.getString("description").getValue()),
-                    valueOf(stringValue), decodedDocument.getDecimal128(key).getValue());
+                    Decimal128.of(stringValue), decodedDocument.getDecimal128(key).getValue());
 
             assertEquals(format("Failed to decode to expected document with description '%s'", description),
                     parse(testCase.getString("extjson").getValue()), decodedDocument);
@@ -127,7 +127,7 @@ public class GenericBsonDecimal128Test {
     private void runParseError() {
         try {
             String description = testCase.getString("description").getValue();
-            valueOf(testCase.getString("subject").getValue());
+            Decimal128.of(testCase.getString("subject").getValue());
             fail(format("Should have failed parsing for subject with description '%s'", description));
         } catch (NumberFormatException e) {
             // all good

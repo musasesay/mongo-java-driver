@@ -28,7 +28,7 @@ class BsonValueSpecification extends Specification {
         new BsonInt32(42).isNumber()
         new BsonInt64(52L).isInt64()
         new BsonInt64(52L).isNumber()
-        new BsonDecimal128(Decimal128.valueOf('1')).isDecimal128()
+        new BsonDecimal128(Decimal128.of('1')).isDecimal128()
         new BsonDouble(62.0).isDouble()
         new BsonDouble(62.0).isNumber()
         new BsonBoolean(true).isBoolean()

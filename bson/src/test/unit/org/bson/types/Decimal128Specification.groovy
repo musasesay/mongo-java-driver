@@ -23,7 +23,7 @@ import static org.bson.types.Decimal128.NEGATIVE_ZERO
 import static org.bson.types.Decimal128.NaN
 import static org.bson.types.Decimal128.POSITIVE_INFINITY
 import static org.bson.types.Decimal128.POSITIVE_ZERO
-import static org.bson.types.Decimal128.valueOf
+import static org.bson.types.Decimal128.of
 
 class Decimal128Specification extends Specification {
 
@@ -47,32 +47,32 @@ class Decimal128Specification extends Specification {
 
     def 'should construct from simple string'() {
         expect:
-        valueOf('0') == new Decimal128(0x3040000000000000L, 0x0000000000000000L)
-        valueOf('-0') == new Decimal128(0xb040000000000000L, 0x0000000000000000L)
-        valueOf('1') == new Decimal128(0x3040000000000000L, 0x0000000000000001L)
-        valueOf('-1') == new Decimal128(0xb040000000000000L, 0x0000000000000001L)
-        valueOf('12345678901234567') == new Decimal128(0x3040000000000000L, 0x002bdc545d6b4b87L)
-        valueOf('989898983458') == new Decimal128(0x3040000000000000L, 0x000000e67a93c822L)
-        valueOf('-12345678901234567') == new Decimal128(0xb040000000000000L, 0x002bdc545d6b4b87L)
-        valueOf('0.12345') == new Decimal128(0x3036000000000000L, 0x0000000000003039L)
-        valueOf('0.0012345') == new Decimal128(0x3032000000000000L, 0x0000000000003039L)
-        valueOf('00012345678901234567') == new Decimal128(0x3040000000000000L, 0x002bdc545d6b4b87L)
+        of('0') == new Decimal128(0x3040000000000000L, 0x0000000000000000L)
+        of('-0') == new Decimal128(0xb040000000000000L, 0x0000000000000000L)
+        of('1') == new Decimal128(0x3040000000000000L, 0x0000000000000001L)
+        of('-1') == new Decimal128(0xb040000000000000L, 0x0000000000000001L)
+        of('12345678901234567') == new Decimal128(0x3040000000000000L, 0x002bdc545d6b4b87L)
+        of('989898983458') == new Decimal128(0x3040000000000000L, 0x000000e67a93c822L)
+        of('-12345678901234567') == new Decimal128(0xb040000000000000L, 0x002bdc545d6b4b87L)
+        of('0.12345') == new Decimal128(0x3036000000000000L, 0x0000000000003039L)
+        of('0.0012345') == new Decimal128(0x3032000000000000L, 0x0000000000003039L)
+        of('00012345678901234567') == new Decimal128(0x3040000000000000L, 0x002bdc545d6b4b87L)
     }
 
     def 'should construct from long'() {
         expect:
-        valueOf(1L) == valueOf(new BigDecimal('1'))
-        valueOf(Long.MIN_VALUE) == valueOf(new BigDecimal(Long.MIN_VALUE))
-        valueOf(Long.MAX_VALUE) == valueOf(new BigDecimal(Long.MAX_VALUE))
+        of(1L) == of(new BigDecimal('1'))
+        of(Long.MIN_VALUE) == of(new BigDecimal(Long.MIN_VALUE))
+        of(Long.MAX_VALUE) == of(new BigDecimal(Long.MAX_VALUE))
     }
 
     def 'should construct from large BigDecimal'() {
         expect:
-        valueOf('12345689012345789012345') == new Decimal128(0x304000000000029dL, 0x42da3a76f9e0d979L)
-        valueOf('1234567890123456789012345678901234') == new Decimal128(0x30403cde6fff9732L, 0xde825cd07e96aff2L)
-        valueOf('9.999999999999999999999999999999999E+6144') == new Decimal128(0x5fffed09bead87c0L, 0x378d8e63ffffffffL)
-        valueOf('9.999999999999999999999999999999999E-6143') == new Decimal128(0x0001ed09bead87c0L, 0x378d8e63ffffffffL)
-        valueOf('5.192296858534827628530496329220095E+33') == new Decimal128(0x3040ffffffffffffL, 0xffffffffffffffffL)
+        of('12345689012345789012345') == new Decimal128(0x304000000000029dL, 0x42da3a76f9e0d979L)
+        of('1234567890123456789012345678901234') == new Decimal128(0x30403cde6fff9732L, 0xde825cd07e96aff2L)
+        of('9.999999999999999999999999999999999E+6144') == new Decimal128(0x5fffed09bead87c0L, 0x378d8e63ffffffffL)
+        of('9.999999999999999999999999999999999E-6143') == new Decimal128(0x0001ed09bead87c0L, 0x378d8e63ffffffffL)
+        of('5.192296858534827628530496329220095E+33') == new Decimal128(0x3040ffffffffffffL, 0xffffffffffffffffL)
     }
 
     def 'should convert to simple BigDecimal'() {
@@ -116,14 +116,14 @@ class Decimal128Specification extends Specification {
         expect:
         POSITIVE_INFINITY.isInfinite()
         NEGATIVE_INFINITY.isInfinite()
-        !valueOf('0').isInfinite()
-        !valueOf('9.999999999999999999999999999999999E+6144').isInfinite()
-        !valueOf('9.999999999999999999999999999999999E-6143').isInfinite()
+        !of('0').isInfinite()
+        !of('9.999999999999999999999999999999999E+6144').isInfinite()
+        !of('9.999999999999999999999999999999999E-6143').isInfinite()
         !POSITIVE_INFINITY.isFinite()
         !NEGATIVE_INFINITY.isFinite()
-        valueOf('0').isFinite()
-        valueOf('9.999999999999999999999999999999999E+6144').isFinite()
-        valueOf('9.999999999999999999999999999999999E-6143').isFinite()
+        of('0').isFinite()
+        of('9.999999999999999999999999999999999E+6144').isFinite()
+        of('9.999999999999999999999999999999999E-6143').isFinite()
     }
 
     def 'should detect NaN'() {
@@ -132,9 +132,9 @@ class Decimal128Specification extends Specification {
         new Decimal128(0x7e00000000000000L, 0).isNaN()    // SNaN
         !POSITIVE_INFINITY.isNaN()
         !NEGATIVE_INFINITY.isNaN()
-        !valueOf('0').isNaN()
-        !valueOf('9.999999999999999999999999999999999E+6144').isNaN()
-        !valueOf('9.999999999999999999999999999999999E-6143').isNaN()
+        !of('0').isNaN()
+        !of('9.999999999999999999999999999999999E+6144').isNaN()
+        !of('9.999999999999999999999999999999999E-6143').isNaN()
     }
 
     def 'should convert NaN to string'() {
@@ -144,9 +144,9 @@ class Decimal128Specification extends Specification {
 
     def 'should convert NaN from string'() {
         expect:
-        valueOf('NaN') == NaN
-        valueOf('nan') == NaN
-        valueOf('nAn') == NaN
+        of('NaN') == NaN
+        of('nan') == NaN
+        of('nAn') == NaN
     }
 
     def 'should not convert NaN to BigDecimal'() {
@@ -165,52 +165,52 @@ class Decimal128Specification extends Specification {
 
     def 'should convert infinity from string'() {
         expect:
-        valueOf('Inf') == POSITIVE_INFINITY
-        valueOf('inf') == POSITIVE_INFINITY
-        valueOf('inF') == POSITIVE_INFINITY
-        valueOf('+Inf') == POSITIVE_INFINITY
-        valueOf('+inf') == POSITIVE_INFINITY
-        valueOf('+inF') == POSITIVE_INFINITY
-        valueOf('Infinity') == POSITIVE_INFINITY
-        valueOf('infinity') == POSITIVE_INFINITY
-        valueOf('infiniTy') == POSITIVE_INFINITY
-        valueOf('+Infinity') == POSITIVE_INFINITY
-        valueOf('+infinity') == POSITIVE_INFINITY
-        valueOf('+infiniTy') == POSITIVE_INFINITY
-        valueOf('-Inf') == NEGATIVE_INFINITY
-        valueOf('-inf') == NEGATIVE_INFINITY
-        valueOf('-inF') == NEGATIVE_INFINITY
-        valueOf('-Infinity') == NEGATIVE_INFINITY
-        valueOf('-infinity') == NEGATIVE_INFINITY
-        valueOf('-infiniTy') == NEGATIVE_INFINITY
+        of('Inf') == POSITIVE_INFINITY
+        of('inf') == POSITIVE_INFINITY
+        of('inF') == POSITIVE_INFINITY
+        of('+Inf') == POSITIVE_INFINITY
+        of('+inf') == POSITIVE_INFINITY
+        of('+inF') == POSITIVE_INFINITY
+        of('Infinity') == POSITIVE_INFINITY
+        of('infinity') == POSITIVE_INFINITY
+        of('infiniTy') == POSITIVE_INFINITY
+        of('+Infinity') == POSITIVE_INFINITY
+        of('+infinity') == POSITIVE_INFINITY
+        of('+infiniTy') == POSITIVE_INFINITY
+        of('-Inf') == NEGATIVE_INFINITY
+        of('-inf') == NEGATIVE_INFINITY
+        of('-inF') == NEGATIVE_INFINITY
+        of('-Infinity') == NEGATIVE_INFINITY
+        of('-infinity') == NEGATIVE_INFINITY
+        of('-infiniTy') == NEGATIVE_INFINITY
     }
 
     def 'should convert finite to string'() {
         expect:
-        valueOf('0').toString() == '0'
-        valueOf('-0').toString() == '-0'
-        valueOf('0E10').toString() == '0E+10'
-        valueOf('-0E10').toString() == '-0E+10'
-        valueOf('1').toString() == '1'
-        valueOf('-1').toString() == '-1'
-        valueOf('-1.1').toString() == '-1.1'
+        of('0').toString() == '0'
+        of('-0').toString() == '-0'
+        of('0E10').toString() == '0E+10'
+        of('-0E10').toString() == '-0E+10'
+        of('1').toString() == '1'
+        of('-1').toString() == '-1'
+        of('-1.1').toString() == '-1.1'
 
-        valueOf('123E-9').toString() == '1.23E-7'
-        valueOf('123E-8').toString() == '0.00000123'
-        valueOf('123E-7').toString() == '0.0000123'
-        valueOf('123E-6').toString() == '0.000123'
-        valueOf('123E-5').toString() == '0.00123'
-        valueOf('123E-4').toString() == '0.0123'
-        valueOf('123E-3').toString() == '0.123'
-        valueOf('123E-2').toString() == '1.23'
-        valueOf('123E-1').toString() == '12.3'
-        valueOf('123E0').toString() == '123'
-        valueOf('123E1').toString() == '1.23E+3'
+        of('123E-9').toString() == '1.23E-7'
+        of('123E-8').toString() == '0.00000123'
+        of('123E-7').toString() == '0.0000123'
+        of('123E-6').toString() == '0.000123'
+        of('123E-5').toString() == '0.00123'
+        of('123E-4').toString() == '0.0123'
+        of('123E-3').toString() == '0.123'
+        of('123E-2').toString() == '1.23'
+        of('123E-1').toString() == '12.3'
+        of('123E0').toString() == '123'
+        of('123E1').toString() == '1.23E+3'
 
-        valueOf('1234E-7').toString() == '0.0001234'
-        valueOf('1234E-6').toString() == '0.001234'
+        of('1234E-7').toString() == '0.0001234'
+        of('1234E-6').toString() == '0.001234'
 
-        valueOf('1E6').toString() == '1E+6'
+        of('1E6').toString() == '1E+6'
     }
 
     def 'should convert invalid representations of 0 to string'() {
@@ -260,12 +260,12 @@ class Decimal128Specification extends Specification {
         thrown(ArithmeticException)
 
         where:
-        decimal << [valueOf('-0'), valueOf('-0E+1'), valueOf('-0E-1')]
+        decimal << [of('-0'), of('-0E+1'), of('-0E-1')]
     }
 
     def 'should throw IllegalArgumentException if BigDecimal is too large'() {
         when:
-        valueOf(val)
+        of(val)
 
         then:
         thrown(IllegalArgumentException)

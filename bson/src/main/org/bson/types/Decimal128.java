@@ -69,13 +69,13 @@ public final class Decimal128 implements Serializable {
      * A constant holding a postive zero value of type {@code Decimal128}.  It is equal to the value return by
      * {@code Decimal128.valueOf("0")}.
      */
-    public static final Decimal128 POSITIVE_ZERO = Decimal128.valueOf("0");
+    public static final Decimal128 POSITIVE_ZERO = Decimal128.of("0");
 
     /**
      * A constant holding a negative zero value of type {@code Decimal128}.  It is equal to the value return by
      * {@code Decimal128.valueOf("-0")}.
      */
-    public static final Decimal128 NEGATIVE_ZERO = Decimal128.valueOf("-0");
+    public static final Decimal128 NEGATIVE_ZERO = Decimal128.of("-0");
 
     private final long high;
     private final long low;
@@ -86,7 +86,7 @@ public final class Decimal128 implements Serializable {
      * @param value the Decimal128 value represented as a String
      * @return the Decimal128 value representing the given String
      */
-    public static Decimal128 valueOf(final String value) {
+    public static Decimal128 of(final String value) {
         String lowerCasedValue = value.toLowerCase();
 
         if (NaN_STRINGS.contains(lowerCasedValue)) {
@@ -98,7 +98,7 @@ public final class Decimal128 implements Serializable {
         if (NEGATIVE_INFINITY_STRINGS.contains(lowerCasedValue)) {
             return NEGATIVE_INFINITY;
         }
-        return valueOf(new BigDecimal(value), value.charAt(0) == '-');
+        return of(new BigDecimal(value), value.charAt(0) == '-');
     }
 
     /**
@@ -107,8 +107,8 @@ public final class Decimal128 implements Serializable {
      * @param value the Decimal128 value represented as a long
      * @return the Decimal128 value representing the given long
      */
-    public static Decimal128 valueOf(final long value) {
-        return valueOf(new BigDecimal(value, DECIMAL128));
+    public static Decimal128 of(final long value) {
+        return of(new BigDecimal(value, DECIMAL128));
     }
 
     /**
@@ -117,8 +117,8 @@ public final class Decimal128 implements Serializable {
      * @param value the Decimal128 value represented as a BigDecimal
      * @return the Decimal128 value representing the given BigDecimal
      */
-    public static Decimal128 valueOf(final BigDecimal value) {
-        return valueOf(value, value.signum() == -1);
+    public static Decimal128 of(final BigDecimal value) {
+        return of(value, value.signum() == -1);
     }
 
     /**
@@ -127,6 +127,10 @@ public final class Decimal128 implements Serializable {
      *
      * @param high the high-order 64 bits
      * @param low  the low-order 64 bits
+     *
+     * @see #of(BigDecimal)
+     * @see #of(String)
+     * @see #of(long)
      */
     public Decimal128(final long high, final long low) {
         this.high = high;
@@ -134,7 +138,7 @@ public final class Decimal128 implements Serializable {
     }
 
     // isNegative is necessary to detect -0, which can't be represented with a BigDecimal
-    private static Decimal128 valueOf(final BigDecimal value, final boolean isNegative) {
+    private static Decimal128 of(final BigDecimal value, final boolean isNegative) {
         long high = 0;
         long low = 0;
 

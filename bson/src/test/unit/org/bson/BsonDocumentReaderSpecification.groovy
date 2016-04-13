@@ -41,7 +41,7 @@ class BsonDocumentReaderSpecification extends Specification {
                         new BsonElement('null', new BsonNull()),
                         new BsonElement('int32', new BsonInt32(42)),
                         new BsonElement('int64', new BsonInt64(52L)),
-                        new BsonElement('decimal128', new BsonDecimal128(Decimal128.valueOf('1.0'))),
+                        new BsonElement('decimal128', new BsonDecimal128(Decimal128.of('1.0'))),
                         new BsonElement('boolean', new BsonBoolean(true)),
                         new BsonElement('date', new BsonDateTime(new Date().getTime())),
                         new BsonElement('double', new BsonDouble(62.0)),

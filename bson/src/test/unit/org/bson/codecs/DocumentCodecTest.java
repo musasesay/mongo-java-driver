@@ -73,7 +73,7 @@ public class DocumentCodecTest {
         doc.put("long", 2L);
         doc.put("string", "hello");
         doc.put("double", 3.2);
-        doc.put("decimal", Decimal128.valueOf("0.100"));
+        doc.put("decimal", Decimal128.of("0.100"));
         doc.put("binary", new Binary(BsonBinarySubType.USER_DEFINED, new byte[]{0, 1, 2, 3}));
         doc.put("date", new Date(1000));
         doc.put("boolean", true);

@@ -28,7 +28,7 @@ class BsonDocumentSpecification extends Specification {
         def bsonNull = new BsonNull()
         def bsonInt32 = new BsonInt32(42)
         def bsonInt64 = new BsonInt64(52L)
-        def bsonDecimal128 = new BsonDecimal128(Decimal128.valueOf('1.0'))
+        def bsonDecimal128 = new BsonDecimal128(Decimal128.of('1.0'))
         def bsonBoolean = new BsonBoolean(true)
         def bsonDateTime = new BsonDateTime(new Date().getTime())
         def bsonDouble = new BsonDouble(62.0)
@@ -93,7 +93,7 @@ class BsonDocumentSpecification extends Specification {
 
         root.getInt32('int32', new BsonInt32(2)).is(bsonInt32)
         root.getInt64('int64', new BsonInt64(4)).is(bsonInt64)
-        root.getDecimal128('decimal128', new BsonDecimal128(Decimal128.valueOf('4.0'))).is(bsonDecimal128)
+        root.getDecimal128('decimal128', new BsonDecimal128(Decimal128.of('4.0'))).is(bsonDecimal128)
         root.getDouble('double', new BsonDouble(343.0)).is(bsonDouble)
         root.getBoolean('boolean', new BsonBoolean(false)).is(bsonBoolean)
         root.getDateTime('date', new BsonDateTime(3453)).is(bsonDateTime)
@@ -164,7 +164,7 @@ class BsonDocumentSpecification extends Specification {
         def bsonNull = new BsonNull()
         def bsonInt32 = new BsonInt32(42)
         def bsonInt64 = new BsonInt64(52L)
-        def bsonDecimal128 = new BsonDecimal128(Decimal128.valueOf('1.0'))
+        def bsonDecimal128 = new BsonDecimal128(Decimal128.of('1.0'))
         def bsonBoolean = new BsonBoolean(true)
         def bsonDateTime = new BsonDateTime(new Date().getTime())
         def bsonDouble = new BsonDouble(62.0)
@@ -174,7 +174,7 @@ class BsonDocumentSpecification extends Specification {
         def timestamp = new BsonTimestamp(0x12345678, 5)
         def binary = new BsonBinary((byte) 80, [5, 4, 3, 2, 1] as byte[])
         def bsonArray = new BsonArray([new BsonInt32(1), new BsonInt64(2L), new BsonBoolean(true),
-                                       new BsonDecimal128(Decimal128.valueOf('4.0')),
+                                       new BsonDecimal128(Decimal128.of('4.0')),
                                        new BsonArray([new BsonInt32(1), new BsonInt32(2), new BsonInt32(3)]),
                                        new BsonDocument('a', new BsonInt64(2L))])
         def bsonDocument = new BsonDocument('a', new BsonInt32(1))
@@ -328,7 +328,7 @@ class BsonDocumentSpecification extends Specification {
         given:
         def document = new BsonDocument('d', new BsonDocument().append('i2', new BsonInt32(1)))
                 .append('i', new BsonInt32(2))
-                .append('d', new BsonDecimal128(Decimal128.valueOf('1.0')))
+                .append('d', new BsonDecimal128(Decimal128.of('1.0')))
                 .append('a', new BsonArray([new BsonInt32(3),
                                             new BsonArray([new BsonInt32(11)]),
                                             new BsonDocument('i3', new BsonInt32(6)),

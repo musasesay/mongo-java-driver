@@ -73,7 +73,7 @@ public final class BsonInt64 extends BsonNumber implements Comparable<BsonInt64>
 
     @Override
     public Decimal128 decimal128Value() {
-        return Decimal128.valueOf(new BigDecimal(value));
+        return Decimal128.of(new BigDecimal(value));
     }
 
     @Override

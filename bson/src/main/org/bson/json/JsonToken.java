@@ -45,13 +45,13 @@ class JsonToken {
             }
         } else if (Decimal128.class == clazz) {
             if (value instanceof Integer) {
-                return clazz.cast(Decimal128.valueOf((Integer) value));
+                return clazz.cast(Decimal128.of((Integer) value));
             } else if (value instanceof Long) {
-                return clazz.cast(Decimal128.valueOf((Long) value));
+                return clazz.cast(Decimal128.of((Long) value));
             } else if (value instanceof Double) {
                 return clazz.cast(new BsonDouble((Double) value).decimal128Value());
             } else if (value instanceof String) {
-                return clazz.cast(Decimal128.valueOf((String) value));
+                return clazz.cast(Decimal128.of((String) value));
             }
         }
 

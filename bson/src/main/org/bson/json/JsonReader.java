@@ -750,7 +750,7 @@ public class JsonReader extends AbstractBsonReader {
                     || valueToken.getType() == JsonTokenType.DOUBLE) {
             value = valueToken.getValue(Decimal128.class);
         } else if (valueToken.getType() == JsonTokenType.STRING) {
-            value = Decimal128.valueOf(valueToken.getValue(String.class));
+            value = Decimal128.of(valueToken.getValue(String.class));
         } else {
             throw new JsonParseException("JSON reader expected a number or a string but found '%s'.", valueToken.getValue());
         }
