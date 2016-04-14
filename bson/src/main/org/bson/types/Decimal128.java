@@ -127,7 +127,6 @@ public final class Decimal128 implements Serializable {
      *
      * @param high the high-order 64 bits
      * @param low  the low-order 64 bits
-     *
      * @see #of(BigDecimal)
      * @see #of(String)
      * @see #of(long)
@@ -150,7 +149,7 @@ public final class Decimal128 implements Serializable {
 
         if (value.unscaledValue().bitLength() > MAX_BIT_LENGTH) {
             throw new IllegalArgumentException("Unscaled roundedValue is out of range for Decimal128 encoding:"
-                    + value.unscaledValue());
+                                                       + value.unscaledValue());
         }
 
         BigInteger significand = value.unscaledValue().abs();
@@ -302,6 +301,20 @@ public final class Decimal128 implements Serializable {
         return (high & NaN_MASK) == NaN_MASK;
     }
 
+    /**
+     * Returns true if the encoded representation of this instance is the same as the encoded representation of {@code o}.
+     * <p>
+     * One consiquence is that, whereas {@code Double.NaN != Double.NaN},
+     * {@code new Decimal128("NaN").equals(new Decimal128("NaN")} returns true.
+     * </p>
+     * <p>
+     * Another consequence is that, as with BigDecimal, {@code new Decimal128("1.0").equals(new Decimal128("1.00")} returns false,
+     * because the precision is not the same and therefore the representation is not the same.
+     * </p>
+     *
+     * @param o the object to compare for equality
+     * @return true if the instances are equal
+     */
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
