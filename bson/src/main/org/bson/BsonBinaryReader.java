@@ -186,7 +186,7 @@ public class BsonBinaryReader extends AbstractBsonReader {
     public Decimal128 doReadDecimal128() {
         long low = bsonInput.readInt64();
         long high = bsonInput.readInt64();
-        return new Decimal128(high, low);
+        return Decimal128.fromIEEE754BIDEncoding(high, low);
     }
 
     @Override

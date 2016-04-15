@@ -76,7 +76,7 @@ public class BsonDouble extends BsonNumber implements Comparable<BsonDouble> {
             return value > 0 ? Decimal128.POSITIVE_INFINITY : Decimal128.NEGATIVE_INFINITY;
         }
 
-        return Decimal128.of(new BigDecimal(value));
+        return new Decimal128(new BigDecimal(value));
     }
 
     @Override

@@ -32,7 +32,7 @@ class BsonNumberSpecification extends Specification {
 
         new BsonDouble(3.14).intValue() == 3
 
-        new BsonDecimal128(Decimal128.of(1L)).intValue() == 1
+        new BsonDecimal128(new Decimal128(1L)).intValue() == 1
     }
 
     def 'should convert to long value'() {
@@ -43,7 +43,7 @@ class BsonNumberSpecification extends Specification {
 
         new BsonDouble(3.14).longValue() == 3L
 
-        new BsonDecimal128(Decimal128.of(1L)).longValue() == 1L
+        new BsonDecimal128(new Decimal128(1L)).longValue() == 1L
     }
 
     def 'should convert to double value'() {
@@ -56,23 +56,23 @@ class BsonNumberSpecification extends Specification {
 
         new BsonDouble(3.14d).doubleValue() == 3.14d
 
-        new BsonDecimal128(Decimal128.of('3.14')).doubleValue() == 3.14d
+        new BsonDecimal128(Decimal128.parse('3.14')).doubleValue() == 3.14d
     }
 
     def 'should convert to decimal128 value'() {
         expect:
-        new BsonInt32(1).decimal128Value() == Decimal128.of('1')
+        new BsonInt32(1).decimal128Value() == Decimal128.parse('1')
 
-        new BsonInt64(1L).decimal128Value() == Decimal128.of('1')
-        new BsonInt64(Long.MAX_VALUE).decimal128Value() == Decimal128.of('9223372036854775807')
-        new BsonInt64(Long.MIN_VALUE).decimal128Value() == Decimal128.of('-9223372036854775808')
+        new BsonInt64(1L).decimal128Value() == Decimal128.parse('1')
+        new BsonInt64(Long.MAX_VALUE).decimal128Value() == Decimal128.parse('9223372036854775807')
+        new BsonInt64(Long.MIN_VALUE).decimal128Value() == Decimal128.parse('-9223372036854775808')
 
-        new BsonDouble(1.0d).decimal128Value() == Decimal128.of('1')
+        new BsonDouble(1.0d).decimal128Value() == Decimal128.parse('1')
         new BsonDouble(Double.NaN).decimal128Value() == Decimal128.NaN
         new BsonDouble(Double.POSITIVE_INFINITY).decimal128Value() == Decimal128.POSITIVE_INFINITY
         new BsonDouble(Double.NEGATIVE_INFINITY).decimal128Value() == Decimal128.NEGATIVE_INFINITY
 
-        new BsonDecimal128(Decimal128.of('3.14')).decimal128Value() == Decimal128.of('3.14')
+        new BsonDecimal128(Decimal128.parse('3.14')).decimal128Value() == Decimal128.parse('3.14')
     }
 
 }

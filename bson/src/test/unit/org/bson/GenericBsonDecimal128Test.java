@@ -94,7 +94,7 @@ public class GenericBsonDecimal128Test {
         if (testCase.getBoolean("from_extjson", BsonBoolean.TRUE).getValue()) {
             assertEquals(String.format("Failed to parse expected decimal '%s' with description '%s'", stringValue,
                     testCase.getString("description").getValue()),
-                    Decimal128.of(stringValue), decodedDocument.getDecimal128(key).getValue());
+                    Decimal128.parse(stringValue), decodedDocument.getDecimal128(key).getValue());
 
             assertEquals(format("Failed to decode to expected document with description '%s'", description),
                     parse(testCase.getString("extjson").getValue()), decodedDocument);
@@ -127,7 +127,7 @@ public class GenericBsonDecimal128Test {
     private void runParseError() {
         try {
             String description = testCase.getString("description").getValue();
-            Decimal128.of(testCase.getString("subject").getValue());
+            Decimal128.parse(testCase.getString("subject").getValue());
             fail(format("Should have failed parsing for subject with description '%s'", description));
         } catch (NumberFormatException e) {
             // all good

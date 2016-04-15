@@ -339,7 +339,7 @@ public class JsonReaderTest {
         String json = "NumberDecimal(\"314E-2\")";
         bsonReader = new JsonReader(json);
         assertEquals(BsonType.DECIMAL128, bsonReader.readBsonType());
-        assertEquals(Decimal128.of("314E-2"), bsonReader.readDecimal128());
+        assertEquals(Decimal128.parse("314E-2"), bsonReader.readDecimal128());
         assertEquals(AbstractBsonReader.State.DONE, bsonReader.getState());
     }
 
@@ -348,7 +348,7 @@ public class JsonReaderTest {
         String json = "NumberDecimal(" + Integer.MAX_VALUE + ")";
         bsonReader = new JsonReader(json);
         assertEquals(BsonType.DECIMAL128, bsonReader.readBsonType());
-        assertEquals(Decimal128.of(Integer.MAX_VALUE), bsonReader.readDecimal128());
+        assertEquals(new Decimal128(Integer.MAX_VALUE), bsonReader.readDecimal128());
         assertEquals(AbstractBsonReader.State.DONE, bsonReader.getState());
     }
 
@@ -357,7 +357,7 @@ public class JsonReaderTest {
         String json = "NumberDecimal(" + Long.MAX_VALUE + ")";
         bsonReader = new JsonReader(json);
         assertEquals(BsonType.DECIMAL128, bsonReader.readBsonType());
-        assertEquals(Decimal128.of(Long.MAX_VALUE), bsonReader.readDecimal128());
+        assertEquals(new Decimal128(Long.MAX_VALUE), bsonReader.readDecimal128());
         assertEquals(AbstractBsonReader.State.DONE, bsonReader.getState());
     }
 
@@ -366,7 +366,7 @@ public class JsonReaderTest {
         String json = "NumberDecimal(" + 1.0 + ")";
         bsonReader = new JsonReader(json);
         assertEquals(BsonType.DECIMAL128, bsonReader.readBsonType());
-        assertEquals(Decimal128.of("1"), bsonReader.readDecimal128());
+        assertEquals(Decimal128.parse("1"), bsonReader.readDecimal128());
         assertEquals(AbstractBsonReader.State.DONE, bsonReader.getState());
     }
 
@@ -387,7 +387,7 @@ public class JsonReaderTest {
         String json = "new NumberDecimal(\"314E-2\")";
         bsonReader = new JsonReader(json);
         assertEquals(BsonType.DECIMAL128, bsonReader.readBsonType());
-        assertEquals(Decimal128.of("314E-2"), bsonReader.readDecimal128());
+        assertEquals(Decimal128.parse("314E-2"), bsonReader.readDecimal128());
         assertEquals(AbstractBsonReader.State.DONE, bsonReader.getState());
     }
 
@@ -396,7 +396,7 @@ public class JsonReaderTest {
         String json = "{\"$numberDecimal\":\"314E-2\"}";
         bsonReader = new JsonReader(json);
         assertEquals(BsonType.DECIMAL128, bsonReader.readBsonType());
-        assertEquals(Decimal128.of("314E-2"), bsonReader.readDecimal128());
+        assertEquals(Decimal128.parse("314E-2"), bsonReader.readDecimal128());
         assertEquals(AbstractBsonReader.State.DONE, bsonReader.getState());
     }
 

@@ -333,7 +333,7 @@ public class JsonWriterTest {
     @Test
     public void testDecimal128SShell() {
         List<TestData<Decimal128>> tests = asList(
-                new TestData<Decimal128>(Decimal128.of("1.0"), "1.0"),
+                new TestData<Decimal128>(Decimal128.parse("1.0"), "1.0"),
                 new TestData<Decimal128>(Decimal128.POSITIVE_INFINITY, Decimal128.POSITIVE_INFINITY.toString()));
 
 
@@ -351,7 +351,7 @@ public class JsonWriterTest {
     @Test
     public void testDecimal128Strict() {
         List<TestData<Decimal128>> tests = asList(
-                new TestData<Decimal128>(Decimal128.of("1.0"), "1.0"),
+                new TestData<Decimal128>(Decimal128.parse("1.0"), "1.0"),
                 new TestData<Decimal128>(Decimal128.POSITIVE_INFINITY, Decimal128.POSITIVE_INFINITY.toString()));
 
 

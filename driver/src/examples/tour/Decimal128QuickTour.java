@@ -50,14 +50,14 @@ public class Decimal128QuickTour {
 
         // make a document and insert it
         Document doc = new Document("name", "MongoDB")
-                               .append("amount1", Decimal128.of(".10"))
-                               .append("amount2", Decimal128.of(42L))
-                               .append("amount3", Decimal128.of(new BigDecimal(".200")));
+                               .append("amount1", Decimal128.parse(".10"))
+                               .append("amount2", new Decimal128(42L))
+                               .append("amount3", new Decimal128(new BigDecimal(".200")));
 
         collection.insertOne(doc);
 
 
-        Document first = collection.find().filter(Filters.eq("amount1", Decimal128.of(new BigDecimal(".10")))).first();
+        Document first = collection.find().filter(Filters.eq("amount1", new Decimal128(new BigDecimal(".10")))).first();
 
         Decimal128 amount3 = (Decimal128) first.get("amount3");
         BigDecimal amount2AsBigDecimal = amount3.bigDecimalValue();

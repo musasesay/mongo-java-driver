@@ -51,31 +51,31 @@ public final class Decimal128 implements Serializable {
      * A constant holding the positive infinity of type {@code Decimal128}.  It is equal to the value return by
      * {@code Decimal128.valueOf("Infinity")}.
      */
-    public static final Decimal128 POSITIVE_INFINITY = new Decimal128(INFINITY_MASK, 0);
+    public static final Decimal128 POSITIVE_INFINITY = fromIEEE754BIDEncoding(INFINITY_MASK, 0);
 
     /**
      * A constant holding the negative infinity of type {@code Decimal128}.  It is equal to the value return by
      * {@code Decimal128.valueOf("-Infinity")}.
      */
-    public static final Decimal128 NEGATIVE_INFINITY = new Decimal128(INFINITY_MASK | SIGN_BIT_MASK, 0);
+    public static final Decimal128 NEGATIVE_INFINITY = fromIEEE754BIDEncoding(INFINITY_MASK | SIGN_BIT_MASK, 0);
 
     /**
      * A constant holding a Not-a-Number (NaN) value of type {@code Decimal128}.  It is equal to the value return by
      * {@code Decimal128.valueOf("NaN")}.
      */
-    public static final Decimal128 NaN = new Decimal128(NaN_MASK, 0);
+    public static final Decimal128 NaN = fromIEEE754BIDEncoding(NaN_MASK, 0);
 
     /**
      * A constant holding a postive zero value of type {@code Decimal128}.  It is equal to the value return by
      * {@code Decimal128.valueOf("0")}.
      */
-    public static final Decimal128 POSITIVE_ZERO = Decimal128.of("0");
+    public static final Decimal128 POSITIVE_ZERO = parse("0");
 
     /**
      * A constant holding a negative zero value of type {@code Decimal128}.  It is equal to the value return by
      * {@code Decimal128.valueOf("-0")}.
      */
-    public static final Decimal128 NEGATIVE_ZERO = Decimal128.of("-0");
+    public static final Decimal128 NEGATIVE_ZERO = parse("-0");
 
     private final long high;
     private final long low;
@@ -86,7 +86,7 @@ public final class Decimal128 implements Serializable {
      * @param value the Decimal128 value represented as a String
      * @return the Decimal128 value representing the given String
      */
-    public static Decimal128 of(final String value) {
+    public static Decimal128 parse(final String value) {
         String lowerCasedValue = value.toLowerCase();
 
         if (NaN_STRINGS.contains(lowerCasedValue)) {
@@ -98,48 +98,47 @@ public final class Decimal128 implements Serializable {
         if (NEGATIVE_INFINITY_STRINGS.contains(lowerCasedValue)) {
             return NEGATIVE_INFINITY;
         }
-        return of(new BigDecimal(value), value.charAt(0) == '-');
+        return new Decimal128(new BigDecimal(value), value.charAt(0) == '-');
     }
 
     /**
-     * Returns a Decimal128 value representing the given long.
-     *
-     * @param value the Decimal128 value represented as a long
-     * @return the Decimal128 value representing the given long
-     */
-    public static Decimal128 of(final long value) {
-        return of(new BigDecimal(value, DECIMAL128));
-    }
-
-    /**
-     * Returns a Decimal128 value representing the given BigDecimal.
-     *
-     * @param value the Decimal128 value represented as a BigDecimal
-     * @return the Decimal128 value representing the given BigDecimal
-     */
-    public static Decimal128 of(final BigDecimal value) {
-        return of(value, value.signum() == -1);
-    }
-
-    /**
-     * Constructs an instance with the given high and low order bits representing this Decimal128.  Under normal circumstances, this
-     * constructor will not be used, as it requires knowledge of the Decimal128 encoding scheme.
+     * Create an instance with the given high and low order bits representing this Decimal128 as an IEEE 754-2008 128-bit decimal
+     * floating point using the BID encoding scheme.
      *
      * @param high the high-order 64 bits
      * @param low  the low-order 64 bits
-     * @see #of(BigDecimal)
-     * @see #of(String)
-     * @see #of(long)
      */
-    public Decimal128(final long high, final long low) {
+    public static Decimal128 fromIEEE754BIDEncoding(final long high, final long low) {
+        return new Decimal128(high, low);
+    }
+
+    /**
+     * Constructs a Decimal128 value representing the given long.
+     *
+     * @param value the Decimal128 value represented as a long
+     */
+    public Decimal128(final long value) {
+        this(new BigDecimal(value, DECIMAL128));
+    }
+
+    /**
+     * Constructs a Decimal128 value representing the given BigDecimal.
+     *
+     * @param value the Decimal128 value represented as a BigDecimal
+     */
+    public Decimal128(final BigDecimal value) {
+        this(value, value.signum() == -1);
+    }
+
+    private Decimal128(final long high, final long low) {
         this.high = high;
         this.low = low;
     }
 
     // isNegative is necessary to detect -0, which can't be represented with a BigDecimal
-    private static Decimal128 of(final BigDecimal value, final boolean isNegative) {
-        long high = 0;
-        long low = 0;
+    private Decimal128(final BigDecimal value, final boolean isNegative) {
+        long localHigh = 0;
+        long localLow = 0;
 
         long exponent = -value.scale();
 
@@ -157,29 +156,31 @@ public final class Decimal128 implements Serializable {
 
         for (int i = 0; i < Math.min(64, bitLength); i++) {
             if (significand.testBit(i)) {
-                low |= 1L << i;
+                localLow |= 1L << i;
             }
         }
 
         for (int i = 64; i < bitLength; i++) {
             if (significand.testBit(i)) {
-                high |= 1L << (i - 64);
+                localHigh |= 1L << (i - 64);
             }
         }
 
         long biasedExponent = exponent + EXPONENT_OFFSET;
 
-        high |= biasedExponent << 49;
+        localHigh |= biasedExponent << 49;
 
         if (value.signum() == -1 || isNegative) {
-            high |= SIGN_BIT_MASK;
+            localHigh |= SIGN_BIT_MASK;
         }
 
-        return new Decimal128(high, low);
+        high = localHigh;
+        low = localLow;
     }
 
     /**
-     * Gets the high-order 64 bits of this Decimal128.
+     * Gets the high-order 64 bits of the IEEE 754-2008 128-bit decimal floating point encoding for this Decimal128, using the BID encoding
+     * scheme.
      *
      * @return the high-order 64 bits of this Decimal128
      */
@@ -188,7 +189,8 @@ public final class Decimal128 implements Serializable {
     }
 
     /**
-     * Gets the low-order 64 bits of this Decimal128.
+     * Gets the low-order 64 bits of the IEEE 754-2008 128-bit decimal floating point encoding for this Decimal128, using the BID encoding
+     * scheme.
      *
      * @return the low-order 64 bits of this Decimal128
      */

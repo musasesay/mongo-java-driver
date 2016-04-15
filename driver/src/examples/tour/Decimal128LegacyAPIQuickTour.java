@@ -51,14 +51,14 @@ public class Decimal128LegacyAPIQuickTour {
 
         // make a document and insert it
         BasicDBObject doc = new BasicDBObject("name", "MongoDB")
-                                    .append("amount1", Decimal128.of(".10"))
-                                    .append("amount2", Decimal128.of(42L))
-                                    .append("amount3", Decimal128.of(new BigDecimal(".200")));
+                                    .append("amount1", Decimal128.parse(".10"))
+                                    .append("amount2", new Decimal128(42L))
+                                    .append("amount3", new Decimal128(new BigDecimal(".200")));
 
         collection.insert(doc);
 
 
-        DBObject first = collection.findOne(QueryBuilder.start("amount1").is(Decimal128.of(new BigDecimal(".10"))).get());
+        DBObject first = collection.findOne(QueryBuilder.start("amount1").is(new Decimal128(new BigDecimal(".10"))).get());
 
         Decimal128 amount3 = (Decimal128) first.get("amount3");
         BigDecimal amount2AsBigDecimal = amount3.bigDecimalValue();
