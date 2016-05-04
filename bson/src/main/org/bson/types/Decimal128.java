@@ -107,6 +107,7 @@ public final class Decimal128 implements Serializable {
      *
      * @param high the high-order 64 bits
      * @param low  the low-order 64 bits
+     * @return the Decimal128 value representing the given high and low order bits
      */
     public static Decimal128 fromIEEE754BIDEncoding(final long high, final long low) {
         return new Decimal128(high, low);
