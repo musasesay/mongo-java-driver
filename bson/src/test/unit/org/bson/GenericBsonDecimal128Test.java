@@ -77,8 +77,9 @@ public class GenericBsonDecimal128Test {
 
     private void runValid() {
         String key = testDefinition.getString("test_key").getValue();
-        String subjectHex = testCase.getString("subject").getValue();
-        String stringValue = testCase.getString("string").getValue();
+        String subjectHex = testCase.getString("subject").getValue().toUpperCase();
+        String stringValue = testCase.containsKey("match_string")
+                                     ? testCase.getString("match_string").getValue() : testCase.getString("string").getValue();
         String description = testCase.getString("description").getValue();
 
         BsonDocument decodedDocument = decodeToDocument(subjectHex, description);
@@ -90,21 +91,35 @@ public class GenericBsonDecimal128Test {
         assertEquals(format("Failed to create expected BSON for document with description '%s'", description),
                 subjectHex, actualSubject);
 
+        if (testCase.containsKey("match_string")) {
+            String uncanonicalStringValue = testCase.getString("string").getValue();
+            Decimal128 parsed = null;
+            try {
+                parsed = Decimal128.parse(uncanonicalStringValue);
+            } catch (Exception e) {
+                fail(format("Failed to parse '%s' with description '%s'", uncanonicalStringValue, description));
+            }
+            assertEquals(format("Failed to canonicalize %s to %s", uncanonicalStringValue, stringValue),
+                    stringValue, parsed.toString());
+        }
 
         if (testCase.getBoolean("from_extjson", BsonBoolean.TRUE).getValue()) {
             assertEquals(String.format("Failed to parse expected decimal '%s' with description '%s'", stringValue,
-                    testCase.getString("description").getValue()),
-                    Decimal128.parse(stringValue), decodedDocument.getDecimal128(key).getValue());
+                    description), Decimal128.parse(stringValue), decodedDocument.getDecimal128(key).getValue());
 
-            assertEquals(format("Failed to decode to expected document with description '%s'", description),
-                    parse(testCase.getString("extjson").getValue()), decodedDocument);
+            if (testCase.containsKey("extjson")) {
+                assertEquals(format("Failed to decode to expected document with description '%s'", description),
+                        parse(testCase.getString("extjson").getValue()), decodedDocument);
+            }
         }
 
         if (testCase.getBoolean("to_extjson", BsonBoolean.TRUE).getValue()) {
-            assertEquals(format("Failed to create expected JSON for document with description '%s'", description),
-                    stripWhiteSpace(testCase.getString("extjson").getValue()), stripWhiteSpace(decodedDocument.toJson()));
+            if (testCase.containsKey("extjson")) {
+                assertEquals(format("Failed to create expected JSON for document with description '%s'", description),
+                        stripWhiteSpace(testCase.getString("extjson").getValue()), stripWhiteSpace(decodedDocument.toJson()));
+            }
         }
-        }
+    }
 
     private BsonDocument decodeToDocument(final String subjectHex, final String description) {
         ByteBuffer byteBuffer = ByteBuffer.wrap(DatatypeConverter.parseHexBinary(subjectHex));
