@@ -69,13 +69,13 @@ public final class Decimal128 implements Serializable {
      * A constant holding a postive zero value of type {@code Decimal128}.  It is equal to the value return by
      * {@code Decimal128.valueOf("0")}.
      */
-    public static final Decimal128 POSITIVE_ZERO = parse("0");
+    public static final Decimal128 POSITIVE_ZERO = fromIEEE754BIDEncoding(0x3040000000000000L, 0x0000000000000000L);
 
     /**
      * A constant holding a negative zero value of type {@code Decimal128}.  It is equal to the value return by
      * {@code Decimal128.valueOf("-0")}.
      */
-    public static final Decimal128 NEGATIVE_ZERO = parse("-0");
+    public static final Decimal128 NEGATIVE_ZERO = fromIEEE754BIDEncoding(0xb040000000000000L, 0x0000000000000000L);
 
     private final long high;
     private final long low;
