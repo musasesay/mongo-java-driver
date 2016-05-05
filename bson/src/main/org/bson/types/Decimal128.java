@@ -43,6 +43,10 @@ public final class Decimal128 implements Serializable {
     private static final int EXPONENT_OFFSET = 6176;
     private static final int MAX_BIT_LENGTH = 113;
 
+    private static final BigInteger BIG_INT_TEN = new BigInteger("10");
+    private static final BigInteger BIG_INT_ONE = new BigInteger("1");
+    private static final BigInteger BIG_INT_ZERO = new BigInteger("0");
+
     private static final Set<String> NaN_STRINGS = new HashSet<String>(asList("nan"));
     private static final Set<String> POSITIVE_INFINITY_STRINGS = new HashSet<String>(asList("inf", "+inf", "infinity", "+infinity"));
     private static final Set<String> NEGATIVE_INFINITY_STRINGS = new HashSet<String>(asList("-inf", "-infinity"));
@@ -137,19 +141,19 @@ public final class Decimal128 implements Serializable {
     }
 
     // isNegative is necessary to detect -0, which can't be represented with a BigDecimal
-    private Decimal128(final BigDecimal value, final boolean isNegative) {
+    private Decimal128(final BigDecimal initialValue, final boolean isNegative) {
         long localHigh = 0;
         long localLow = 0;
+
+        BigDecimal value = clampAndRound(initialValue);
 
         long exponent = -value.scale();
 
         if ((exponent < MIN_EXPONENT) || (exponent > MAX_EXPONENT)) {
-            throw new IllegalArgumentException("Exponent is out of range for Decimal128 encoding: " + exponent);
-        }
+            throw new AssertionError("Exponent is out of range for Decimal128 encoding: " + exponent); }
 
         if (value.unscaledValue().bitLength() > MAX_BIT_LENGTH) {
-            throw new IllegalArgumentException("Unscaled roundedValue is out of range for Decimal128 encoding:"
-                                                       + value.unscaledValue());
+            throw new AssertionError("Unscaled roundedValue is out of range for Decimal128 encoding:" + value.unscaledValue());
         }
 
         BigInteger significand = value.unscaledValue().abs();
@@ -177,6 +181,49 @@ public final class Decimal128 implements Serializable {
 
         high = localHigh;
         low = localLow;
+    }
+
+    private BigDecimal clampAndRound(final BigDecimal initialValue) {
+        BigDecimal value;
+        if (-initialValue.scale() > MAX_EXPONENT) {
+            int diff = -initialValue.scale() - MAX_EXPONENT;
+            if (initialValue.unscaledValue().equals(BIG_INT_ZERO)) {
+                value = new BigDecimal(initialValue.unscaledValue(), -MAX_EXPONENT);
+            } else if (diff + initialValue.precision() > 34) {
+                throw new NumberFormatException("Exponent is out of range for Decimal128 encoding of " + initialValue);
+            } else {
+                BigInteger multiplier = BIG_INT_TEN.pow(diff);
+                value = new BigDecimal(initialValue.unscaledValue().multiply(multiplier), initialValue.scale() + diff);
+            }
+        } else if (-initialValue.scale() < MIN_EXPONENT) {
+            // Increasing a very negative exponent may require decreasing precision, which is rounding
+            // Only round exactly (by removing precision that is all zeroes).  An exception is thrown if the rounding would be inexact:
+            // Exact:     .000...0011000  => 11000E-6177  => 1100E-6176  => .000001100
+            // Inexact:   .000...0011001  => 11001E-6177  => 1100E-6176  => .000001100
+            int diff = initialValue.scale() + MIN_EXPONENT;
+            int undiscardedPrecision = ensureExactRounding(initialValue, diff);
+            BigInteger divisor = undiscardedPrecision == 0 ? BIG_INT_ONE : BIG_INT_TEN.pow(diff);
+            value = new BigDecimal(initialValue.unscaledValue().divide(divisor), initialValue.scale() - diff);
+        } else {
+            value = initialValue.round(DECIMAL128);
+            int extraPrecision = initialValue.precision() - value.precision();
+            if (extraPrecision > 0) {
+                // Again, only round exactly
+                ensureExactRounding(initialValue, extraPrecision);
+            }
+        }
+        return value;
+    }
+
+    private int ensureExactRounding(final BigDecimal initialValue, final int extraPrecision) {
+        String significand = initialValue.unscaledValue().abs().toString();
+        int undiscardedPrecision = Math.max(0, significand.length() - extraPrecision);
+        for (int i = undiscardedPrecision; i < significand.length(); i++) {
+            if (significand.charAt(i) != '0') {
+                throw new NumberFormatException("Conversion to Decimal128 would require inexact rounding of " + initialValue);
+            }
+        }
+        return undiscardedPrecision;
     }
 
     /**
