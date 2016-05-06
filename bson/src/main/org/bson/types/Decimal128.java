@@ -365,37 +365,37 @@ public final class Decimal128 implements Serializable {
         StringBuilder buffer = new StringBuilder();
 
         BigDecimal bigDecimal = bigDecimalValueNoNegativeZeroCheck();
-        char[] significand = bigDecimal.unscaledValue().abs().toString().toCharArray();
+        String significand = bigDecimal.unscaledValue().abs().toString();
 
         if (isNegative()) {
             buffer.append('-');
         }
 
         int exponent = -bigDecimal.scale();
-        int adjustedExponent = exponent + (significand.length - 1);
+        int adjustedExponent = exponent + (significand.length() - 1);
         if (exponent <= 0 && adjustedExponent >= -6) {
             if (exponent == 0) {
                 buffer.append(significand);
             } else {
-                int pad = -exponent - significand.length;
+                int pad = -exponent - significand.length();
                 if (pad >= 0) {
                     buffer.append('0');
                     buffer.append('.');
                     for (int i = 0; i < pad; i++) {
                         buffer.append('0');
                     }
-                    buffer.append(significand, 0, significand.length);
+                    buffer.append(significand, 0, significand.length());
                 } else {
                     buffer.append(significand, 0, -pad);
                     buffer.append('.');
-                    buffer.append(significand, -pad, -exponent);
+                    buffer.append(significand, -pad, -pad - exponent);
                 }
             }
         } else {
-            buffer.append(significand[0]);
-            if (significand.length > 1) {
+            buffer.append(significand.charAt(0));
+            if (significand.length() > 1) {
                 buffer.append('.');
-                buffer.append(significand, 1, significand.length - 1);
+                buffer.append(significand, 1, significand.length());
             }
             buffer.append('E');
             if (adjustedExponent > 0) {
