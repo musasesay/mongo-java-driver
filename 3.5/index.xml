@@ -43,7 +43,7 @@ The following code snippets come from the PojoQuickTour.java example code that c
       <pubDate>Mon, 10 Apr 2017 14:27:51 -0400</pubDate>
       
       <guid>/mongo-java-driver/3.5/bson/pojos/</guid>
-      <description>POJOs - Plain Old Java Objects The 3.5 release of the driver adds POJO support via the PojoCodec, which allows for direct serialization of POJOs to and from BSON. Internally, each PojoCodec utilizes a ClassModel instance to store metadata about how the POJO should be serialized.
+      <description>POJOs - Plain Old Java Objects The 3.5 release of the driver adds POJO support via the PojoCodec, which allows for direct serialization of POJOs and Java Beans to and from BSON. Internally, each PojoCodec utilizes a ClassModel instance to store metadata about how the POJO should be serialized.
 A ClassModel for a POJO includes:
  The class of the POJO. A new instance factory. Handling the creation of new instances of the POJO.</description>
     </item>
@@ -135,12 +135,9 @@ Prerequisites  The example below requires a restaurants collection in the test d
       <pubDate>Thu, 09 Jun 2016 12:47:43 -0400</pubDate>
       
       <guid>/mongo-java-driver/3.5/whats-new/</guid>
-      <description>What&amp;rsquo;s New This release includes full support for the upcoming MongoDB 3.4 server release. Key new features include:
-Support for Decimal128 Format import org.bson.types.Decimal128;  The Decimal128 format supports numbers with up to 34 decimal digits (i.e. significant digits) and an exponent range of −6143 to +6144.
-To create a Decimal128 number, you can use
- Decimal128.parse() with a string:
-Decimal128.parse(&amp;quot;9.9900&amp;quot;);  new Decimal128() with a long:
-new Decimal128(10L);  new Decimal128() with a java.</description>
+      <description>What&amp;rsquo;s New in 3.5 Key new features of the 3.5 Java driver release:
+Native POJO support The 3.5 release adds support for POJO serialization at the BSON layer, and can be used by the synchronous and asynchronous drivers. See the POJO Quick start pages for details.
+ POJO Quick Start POJO Quick Start (Async) POJO Reference  Improved JSON support The 3.5 release improves support for JSON parsing and generation.</description>
     </item>
     
     <item>
@@ -257,8 +254,7 @@ MongoClientURI uri = new MongoClientURI(&amp;quot;mongodb://localhost/?ssl=true&
       <guid>/mongo-java-driver/3.5/driver/tutorials/connect-to-mongodb/</guid>
       <description>Connect to MongoDB Use MongoClient() to make a connection to a running MongoDB instance.
 important The following examples are not meant to provide an exhaustive list of ways to instantiate MongoClient. For a complete list of the MongoClient constructors, see MongoClient() API documentation.
- Prerequisites  Running MongoDB deployments to which to connect. For example, to connect to a standalone, you must have a running standalone.
- The MongoDB Driver.</description>
+ Note The 3.5 release deprecated socket keep-alive settings, also socket keep-alive checks are now on by default. It is strongly recommended that system keep-alive settings should be configured with shorter timeouts.</description>
     </item>
     
     <item>
@@ -355,7 +351,7 @@ Ascending To specify an ascending index key, use one of the ascending methods.</
       <pubDate>Thu, 14 May 2015 08:01:00 +0000</pubDate>
       
       <guid>/mongo-java-driver/3.5/driver-async/reference/observables/</guid>
-      <description>Observables The MongoDB Async Driver is fully callback based and makes extensive use of SingleResultCallback&amp;lt;T&amp;gt; to achieve this. The SingleResultCallback&amp;lt;T&amp;gt; interface requires the implementation of a single method onResult(T result, Throwable t) which is called once the operation has completed or errored. The result parameter contains the result of the operation if successful. If the operation failed for any reason then the t contains the Throwable reason for the failure.</description>
+      <description>Observables The MongoDB Async Driver is fully callback-based and makes extensive use of SingleResultCallback&amp;lt;T&amp;gt; to achieve this. The SingleResultCallback&amp;lt;T&amp;gt; interface requires the implementation of a single method onResult(T result, Throwable t) which is called once the operation has completed or errored. The result parameter contains the result of the operation if successful. If the operation failed for any reason then the t contains the Throwable reason for the failure. This pattern allows the users application logic to be deferred until the underlying network IO to MongoDB has been completed.</description>
     </item>
     
     <item>
@@ -409,9 +405,8 @@ BsonDocument Although generally not needed by users of the high-level driver API
       <pubDate>Thu, 19 Mar 2015 14:27:51 -0400</pubDate>
       
       <guid>/mongo-java-driver/3.5/bson/extended-json/</guid>
-      <description>MongoDB Extended JSON As discussed earlier, the Java driver supports reading and writing BSON documents represented as
-MongoDB Extended JSON. Both variants are supported:
- Strict Mode: representations of BSON types that conform to the JSON RFC. This is the format that mongoexport produces and mongoimport consumes. Shell Mode: a superset of JSON that the MongoDB shell can parse.  Furthermore, the Document class provides two sets of convenience methods for this purpose:</description>
+      <description>JSON As discussed earlier, the Java driver supports reading and writing BSON documents represented as JSON values. The driver supports four standard variants:
+ Extended Mode: Canonical representation that avoids any loss of BSON type information. See the Extended JSON specification for a description of this mode. Relaxed Mode: Relaxed representation that loses type information for BSON numeric types and uses a more human-readable representation of BSON dates. See the Extended JSON specification for a description of this mode.</description>
     </item>
     
     <item>
@@ -478,8 +473,9 @@ Field Updates This section describes update operators that apply to the value of
       <pubDate>Thu, 19 Mar 2015 12:53:39 -0400</pubDate>
       
       <guid>/mongo-java-driver/3.5/upgrading/</guid>
-      <description>Upgrading from 3.3.x There is one breaking API change in the 3.4 release: due to the addition of a new BSON type for 128-bit decimal values, a new method had to be added to the BSONCallback(/mongo-java-driver/3.5/javadoc?org/bson/BSONCallback.html ) interface. Any clients that directly implement that interface must add an implementation of the new method in order to be compatible with the 3.4 driver.
-Otherwise, the 3.4 release is binary and source compatible with the 3.</description>
+      <description>Upgrading from 3.4.x The 3.5 release is binary and source compatible with the 3.4 release, except for methods that have been added to interfaces that have been marked as unstable, and changes to classes or interfaces that have been marked as internal or annotated as Beta.
+Upgrading from 2.x You must upgrade first to 3.0 driver. See the Upgrade guide in the 3.0 driver reference documentation.
+System Requirements The minimum JVM is now Java 6: however, specific features require Java 7:</description>
     </item>
     
     <item>
@@ -489,7 +485,7 @@ Otherwise, the 3.4 release is binary and source compatible with the 3.</descript
       
       <guid>/mongo-java-driver/3.5/bson/</guid>
       <description>BSON The BSON library comprehensively supports BSON, the data storage and network transfer format that MongoDB uses for “documents&amp;rdquo;. BSON, short for Binary JSON, is a binary-encoded serialization of JSON-like documents.
- Documents: Documentation of the driver&amp;rsquo;s support for BSON document representations Readers and Writers: Documentation of the driver&amp;rsquo;s support for stream-based reading and writing of BSON documents Codec and CodecRegistry: Documentation of the driver&amp;rsquo;s Codec API, an abstraction for producing and consuming BSON document representations using the stream-based readers and writers [POJOs(/mongo-java-driver/3.</description>
+ Documents: Documentation of the driver&amp;rsquo;s support for BSON document representations Readers and Writers: Documentation of the driver&amp;rsquo;s support for stream-based reading and writing of BSON documents JSON: Documentation of the driver&amp;rsquo;s support for JSON Codec and CodecRegistry: Documentation of the driver&amp;rsquo;s Codec API, an abstraction for producing and consuming BSON document representations using the stream-based readers and writers POJOs: Documentation of the driver&amp;rsquo;s POJO support.</description>
     </item>
     
     <item>
@@ -578,7 +574,7 @@ Each MXBean instance is required to be registered with a unique object name, whi
       
       <guid>/mongo-java-driver/3.5/driver-async/tutorials/ssl/</guid>
       <description>TLS/SSL The Java driver supports TLS/SSL connections to MongoDB servers using the underlying support for TLS/SSL provided by the JDK. To use TLS/SSL, you must configure the asynchronous driver to use Netty.
-Specify TLS/SSL and Netty Configuration Note If your application requires Netty, it must explicitly add a dependency to Netty artifacts. The driver is currently tested against Netty 4.0.
+Specify TLS/SSL and Netty Configuration Note If your application requires Netty, it must explicitly add a dependency to Netty artifacts. The driver is currently tested against Netty 4.1.
  Via Connection String To configure the driver to use Netty, include the ssl=true and streamType=netty options in the connection string, as in:</description>
     </item>
     
@@ -636,7 +632,7 @@ import com.mongodb.Block; import com.mongodb.async.SingleResultCallback; import 
       <description>Installation The recommended way to get started using one of the drivers in your project is with a dependency management system.
 important The MongoDB Async Driver requires either Netty or Java 7.
   MongoDB Async Driver The MongoDB Async Driver provides asynchronous API that can leverage either Netty or Java 7&amp;rsquo;s AsynchronousSocketChannel for fast and non-blocking I/O.
-&amp;lt;dependencies&amp;gt; &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.mongodb&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;mongodb-driver-async&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;3.5.0-SNAPSHOT&amp;lt;/version&amp;gt; &amp;lt;/dependency&amp;gt; &amp;lt;/dependencies&amp;gt; &amp;lt;repositories&amp;gt; &amp;lt;repository&amp;gt; &amp;lt;id&amp;gt;sonatype-snapshots&amp;lt;/id&amp;gt; &amp;lt;name&amp;gt;Sontatype Snapshots&amp;lt;/name&amp;gt; &amp;lt;url&amp;gt;https://oss.</description>
+&amp;lt;dependencies&amp;gt; &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.mongodb&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;mongodb-driver-async&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;3.5.0&amp;lt;/version&amp;gt; &amp;lt;/dependency&amp;gt; &amp;lt;/dependencies&amp;gt;    dependencies { compile &#39;org.</description>
     </item>
     
     <item>
@@ -646,7 +642,7 @@ important The MongoDB Async Driver requires either Netty or Java 7.
       
       <guid>/mongo-java-driver/3.5/driver/getting-started/installation/</guid>
       <description>Installation The recommended way to get started using one of the drivers in your project is with a dependency management system.
-There are two Maven artifacts available in the 3.4 release. The preferred artifact for new applications is mongodb-driver however, we still publish the legacy mongo-java-driver uber-jar.
+There are two Maven artifacts available in the 3.5 release. The preferred artifact for new applications is mongodb-driver however, we still publish the legacy mongo-java-driver uber-jar.
  MongoDB Driver The MongoDB Driver mongodb-driver is the updated synchronous Java driver that includes the legacy API as well as a new generic MongoCollection interface that complies with a new cross-driver CRUD specification.</description>
     </item>
     
@@ -666,10 +662,9 @@ There are two Maven artifacts available in the 3.4 release. The preferred artifa
       <pubDate>Tue, 17 Mar 2015 15:36:56 +0000</pubDate>
       
       <guid>/mongo-java-driver/3.5/driver-async/</guid>
-      <description>MongoDB Async Java Driver Documentation The following guide provides information on using the MongoDB Async Java Driver 3.4.
-What&amp;rsquo;s New in 3.4 The What&amp;rsquo;s New guide explains the major new features of the driver.
-If you are upgrading from the 2.x series of the driver, consult the Upgrading documentation for information on breaking changes.
-Getting Started To get started, see the Installation Guide, the Quick Start Guide and the Quick Start with POJOs Guide.</description>
+      <description>MongoDB Async Java Driver Documentation The following guide provides information on using the callback-based MongoDB Async Java Driver 3.5.
+Note There are two higher level MongoDB Asynchronous Java Drivers available, that users may find easier to work with due to their friendlier APIs:
+ MongoDB RxJava Driver An RxJava implementation of the MongoDB Driver. MongoDB Reactive Streams Java Driver A Reactive Streams implementation for the JVM.   What&amp;rsquo;s New in 3.</description>
     </item>
     
     <item>
@@ -678,8 +673,8 @@ Getting Started To get started, see the Installation Guide, the Quick Start Guid
       <pubDate>Tue, 17 Mar 2015 15:36:56 +0000</pubDate>
       
       <guid>/mongo-java-driver/3.5/driver/</guid>
-      <description>MongoDB Driver 3.4 Documentation The following guide provides information on using the synchronous MongoDB Java Driver 3.4.
-What&amp;rsquo;s New in 3.4 The What&amp;rsquo;s New guide explains the major new features of the driver.
+      <description>MongoDB Driver 3.5 Documentation The following guide provides information on using the synchronous MongoDB Java Driver 3.5.
+What&amp;rsquo;s New in 3.5 The What&amp;rsquo;s New guide explains the major new features of the driver.
 If you are upgrading from the 2.x series of the driver, consult the Upgrading documentation for information on breaking changes.
 Getting Started To get started, see the Installation Guide, the Quick Start Guide and the Quick Start with POJOs Guide.</description>
     </item>
@@ -691,8 +686,8 @@ Getting Started To get started, see the Installation Guide, the Quick Start Guid
       
       <guid>/mongo-java-driver/3.5/driver-async/getting-started/quick-start/</guid>
       <description>MongoDB Async Driver Quick Start The following code snippets come from the QuickTour.java example code that can be found with the async driver source on github.
-SingleResultCallback The MongoDB Async driver provides an asynchronous API that can leverage either Netty or Java 7&amp;rsquo;s AsynchronousSocketChannel for fast and non-blocking I/O.
-The MongoDB Asynchronous Driver API mirrors the new Synchronous MongoDB Driver API, but asynchronous methods that make network I/O operations take a SingleResultCallback&amp;lt;T&amp;gt; and return immediately.</description>
+Note There are two higher level MongoDB Asynchronous Java Drivers available, that users may find easier to work with due to their friendlier APIs:
+ MongoDB RxJava Driver An RxJava implementation of the MongoDB Driver. MongoDB Reactive Streams Java Driver A Reactive Streams implementation for the JVM.</description>
     </item>
     
     <item>
@@ -738,8 +733,8 @@ The MongoDB Asynchronous Driver API mirrors the new Synchronous MongoDB Driver A
       <pubDate>Tue, 17 Mar 2015 15:36:56 +0000</pubDate>
       
       <guid>/mongo-java-driver/3.5/</guid>
-      <description>MongoDB Java Driver Documentation Welcome to the MongoDB Java driver documentation hub for the 3.4 driver release.
-What&amp;rsquo;s New in 3.4 For key new features of 3.4, see What&amp;rsquo;s New.
+      <description>MongoDB Java Driver Documentation Welcome to the MongoDB Java driver documentation hub for the 3.5 driver release.
+What&amp;rsquo;s New in 3.5 For key new features of 3.5, see What&amp;rsquo;s New.
 Upgrade To upgrade, refer to the Upgrade Considerations documentation.
 MongoDB Driver For the synchronous MongoDB Driver, see MongoDB Driver section.
 MongoDB Async Driver For the new asynchronous MongoDB Async Driver, the MongoDB Async Driver section.

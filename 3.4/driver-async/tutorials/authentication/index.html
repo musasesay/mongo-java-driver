@@ -3078,10 +3078,15 @@ create a credential of this type use the
 MongoCredential credential = MongoCredential.createMongoX509Credential(user);
 ClusterSettings clusterSettings = ClusterSettings.builder()
                                   .hosts(asList(new ServerAddress(&quot;localhost&quot;))).build();
+
+EventLoopGroup eventLoopGroup = new NioEventLoopGroup();  // make sure application shuts this down
+
 MongoClientSettings settings = MongoClientSettings.builder()
-                                  .clusterSettings(clusterSettings)
-                                  .credentialList(Arrays.asList(credential))
-                                  .build();
+                .clusterSettings(clusterSettings)
+                .credentialList(Arrays.asList(credential))
+                .streamFactoryFactory(NettyStreamFactoryFactory.builder().eventLoopGroup(eventLoopGroup).build())
+                .sslSettings(SslSettings.builder().enabled(true).build())
+                .build();
 MongoClient mongoClient = MongoClients.create(settings);
 </code></pre>
 
@@ -3089,7 +3094,7 @@ MongoClient mongoClient = MongoClients.create(settings);
 <code>authMechanism=MONGODB-X509</code>:</p>
 
 <pre><code class="language-java">MongoClient mongoClient = MongoClients.create(new ConnectionString(
-            &quot;mongodb://subjectName@host1/?authMechanism=MONGODB-X509&quot;));
+            &quot;mongodb://subjectName@host1/?authMechanism=MONGODB-X509&amp;streamType=netty&amp;ssl=true&quot;));
 </code></pre>
 
 <p>See the MongoDB server
@@ -3123,7 +3128,7 @@ MongoClient mongoClient = MongoClients.create(settings);
 <code>authMechanism=GSSAPI</code>:</p>
 
 <pre><code class="language-java">MongoClient mongoClient = MongoClients.create(new ConnectionString(
-            &quot;mongodb://username%40MYREALM.com@host1/?authMechanism=GSSAPI&quot;));
+            &quot;mongodb://username%40MYREALM.ME@host1/?authMechanism=GSSAPI&quot;));
 </code></pre>
 
 <p><div class="admonition note">

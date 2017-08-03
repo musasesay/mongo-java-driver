@@ -2929,12 +2929,16 @@ Netty artifacts.  The driver is currently tested against Netty 4.0.</p>
 "><code>MongoClientSettings</code></a> , set the <code>sslEnabled</code> property to <code>true</code>, and the stream factory to <a href="/mongo-java-driver/3.4/javadoc?com/mongodb/connection/netty/NettyStreamFactoryFactory.html
 "><code>NettyStreamFactoryFactory</code></a>, as in</p>
 
-<pre><code class="language-java">MongoClient client = MongoClients.create(MongoClientSettings.builder()
+<pre><code class="language-java">
+EventLoopGroup eventLoopGroup = new NioEventLoopGroup();  // make sure application shuts this down
+
+
+MongoClient client = MongoClients.create(MongoClientSettings.builder()
                         .clusterSettings(ClusterSettings.builder()
                                           .hosts(Arrays.asList(new ServerAddress()))
                                           .build())
                         .streamFactoryFactory(NettyStreamFactoryFactory.builder()
-                                          .build())
+                                          .eventLoopGroup(eventLoopGroup).build())
                         .sslSettings(SslSettings.builder()
                                           .enabled(true)
                                           .build())
@@ -2965,7 +2969,10 @@ to the <code>javax.net.SSLParameters</code> class.</p>
 <p>If your application must run on Java 6, or for some other reason you need
 to disable host name verification, you must explicitly indicate this using the <code>invalidHostNameAllowed</code> property:</p>
 
-<pre><code class="language-java">MongoClient client = MongoClients.create(MongoClientSettings.builder()
+<pre><code class="language-java">
+EventLoopGroup eventLoopGroup = new NioEventLoopGroup();  // make sure application shuts this down
+
+MongoClient client = MongoClients.create(MongoClientSettings.builder()
                                                  .clusterSettings(ClusterSettings.builder()
                                                                           .hosts(Arrays.asList(new ServerAddress()))
                                                                           .build())
@@ -2973,7 +2980,8 @@ to disable host name verification, you must explicitly indicate this using the <
                                                                        .enabled(true)
                                                                        .invalidHostNameAllowed(true)
                                                                        .build())
-                                                  .streamFactoryFactory(NettyStreamFactoryFactory.builder().build())
+                                                  .streamFactoryFactory(NettyStreamFactoryFactory.builder()
+                                                                            .eventLoopGroup(eventLoopGroup).build())
                                                   .build());
 </code></pre>
 

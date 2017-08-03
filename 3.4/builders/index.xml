@@ -317,6 +317,178 @@ collection.  It must be the last stage in any aggregate pipeline:&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;out(&amp;quot;authors&amp;quot;)
 &lt;/code&gt;&lt;/pre&gt;
 
+&lt;h3 id=&#34;graphlookup&#34;&gt;GraphLookup&lt;/h3&gt;
+
+&lt;p&gt;The &lt;a href=&#34;http://docs.mongodb.org/manual/reference/operator/aggregation/graphLookup/
+&#34;&gt;&lt;code&gt;$graphLookup&lt;/code&gt;&lt;/a&gt; pipeline stage performs a recursive search on a specified collection to match field A of one document to some field B of the other documents. For the matching documents, the stage repeats the search to match field A from the matching documents to the field B of the remaining documents until no new documents are encountered or until a specified depth. To each output document, &lt;code&gt;$graphLookup&lt;/code&gt; adds a new array field that contains the traversal results of the search for that document.&lt;/p&gt;
+
+&lt;p&gt;The following example computes the social network graph for users in the &lt;code&gt;contacts&lt;/code&gt; collection, recursively matching the value in the &lt;code&gt;friends&lt;/code&gt; field to the &lt;code&gt;name&lt;/code&gt; field, up to recursive depth of 1.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;graphLookup(&amp;quot;contacts&amp;quot;, &amp;quot;$friends&amp;quot;, &amp;quot;friends&amp;quot;, &amp;quot;name&amp;quot;, &amp;quot;socialNetwork&amp;quot;,
+	new GraphLookupOptions().maxDepth(1))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Using &lt;code&gt;GraphLookupOptions&lt;/code&gt;, the output can be tailored to restrict the depth of the recursion as well to inject a field containing the depth of the recursion at which a document was included.&lt;/p&gt;
+
+&lt;h3 id=&#34;sortbycount&#34;&gt;SortByCount&lt;/h3&gt;
+
+&lt;p&gt;The &lt;a href=&#34;http://docs.mongodb.org/manual/reference/operator/aggregation/sortByCount/
+&#34;&gt;&lt;code&gt;$sortByCount&lt;/code&gt;&lt;/a&gt; stage groups documents by a given expression and then sorts these groups by count in descending order. The &lt;code&gt;sortByCount&lt;/code&gt; outputs documents that contains an &lt;code&gt;_id&lt;/code&gt; field, which contains the discrete values of the given expression, and the &lt;code&gt;count&lt;/code&gt; field that contains the number of documents that fall into that group.&lt;/p&gt;
+
+&lt;p&gt;The following example groups documents by the truncated value of the field &lt;code&gt;x&lt;/code&gt; and computes the count for each distinct value of &lt;code&gt;x&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;sortByCount(new Document(&amp;quot;$floor&amp;quot;, &amp;quot;$x&amp;quot;))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;replaceroot&#34;&gt;ReplaceRoot&lt;/h3&gt;
+
+&lt;p&gt;The &lt;a href=&#34;http://docs.mongodb.org/manual/reference/operator/aggregation/replaceRoot/
+&#34;&gt;&lt;code&gt;$replaceRoot&lt;/code&gt;&lt;/a&gt; pipeline stage replaces each input document to the stage with the specified document. All existing fields, including the &lt;code&gt;_id&lt;/code&gt; field, are replaced.&lt;/p&gt;
+
+&lt;p&gt;If each input document to the &lt;code&gt;replaceRoot&lt;/code&gt; stage has a field &lt;code&gt;a1&lt;/code&gt; that contains a field &lt;code&gt;b&lt;/code&gt; whose value is a document, the following operation replaces each input document with the document in the &lt;code&gt;b&lt;/code&gt; field.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;replaceRoot(&amp;quot;$a1.b&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;addfields&#34;&gt;AddFields&lt;/h3&gt;
+
+&lt;p&gt;The &lt;a href=&#34;http://docs.mongodb.org/manual/reference/operator/aggregation/addFields/
+&#34;&gt;&lt;code&gt;$addFields&lt;/code&gt;&lt;/a&gt; pipeline stage adds new fields to documents. The stage outputs documents that contain all existing fields from the input documents and the newly added fields.&lt;/p&gt;
+
+&lt;p&gt;This example adds two new fields, &lt;code&gt;myNewField&lt;/code&gt; and &lt;code&gt;z&lt;/code&gt; to the input documents; &lt;code&gt;myNewField&lt;/code&gt; has the value &lt;code&gt;{c: 3, d: 4}&lt;/code&gt;, &lt;code&gt;z&lt;/code&gt; has the value 5.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;addFields(new Field(&amp;quot;myNewField&amp;quot;, new Document(&amp;quot;c&amp;quot;, 3).append(&amp;quot;d&amp;quot;, 4)),
+	new Field(&amp;quot;z&amp;quot;, 5))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;These new fields do not need be statically defined.  The following example shows how to add a new field which is a function of the current document&amp;rsquo;s values.  In this case, a new field &lt;code&gt;alt3&lt;/code&gt; is added with a value of &lt;code&gt;true&lt;/code&gt; if the current value of the field &lt;code&gt;a&lt;/code&gt; is less than 3.  Otherwise, &lt;code&gt;alt3&lt;/code&gt; will be &lt;code&gt;false&lt;/code&gt; in the new field.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;addFields(new Field(&amp;quot;alt3&amp;quot;, new Document(&amp;quot;$lt&amp;quot;, asList(&amp;quot;$a&amp;quot;, 3))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;count&#34;&gt;Count&lt;/h3&gt;
+
+&lt;p&gt;The &lt;a href=&#34;http://docs.mongodb.org/manual/reference/operator/aggregation/count/
+&#34;&gt;&lt;code&gt;$count&lt;/code&gt;&lt;/a&gt; pipeline stage specifies the name of the field that will contain the number of documents that enter this stage.  The &lt;code&gt;$count&lt;/code&gt; stage is syntactic sugar for: &lt;code&gt;{$group:{_id:null, count:{$sum:1}}}&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;There are two ways to invoke this stage.  The first way is to explicitly name the resulting field as in the two following examples:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;count(&amp;quot;count&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;count(&amp;quot;total&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;These two invocations will put the count in the &lt;code&gt;count&lt;/code&gt; and &lt;code&gt;total&lt;/code&gt; fields respectively.  If &lt;code&gt;count&lt;/code&gt; is the field name to be used, this can be shortened with the following convenience method:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;count()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This invocation defaults the field name to &lt;code&gt;count&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;bucket&#34;&gt;Bucket&lt;/h3&gt;
+
+&lt;p&gt;The &lt;a href=&#34;http://docs.mongodb.org/manual/reference/operator/aggregation/bucket/
+&#34;&gt;&lt;code&gt;$bucket&lt;/code&gt;&lt;/a&gt; pipeline stage automates the bucketing of data around predefined boundary values.&lt;/p&gt;
+
+&lt;p&gt;The following example shows a basic &lt;code&gt;$bucket&lt;/code&gt; stage:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;bucket(&amp;quot;$screenSize&amp;quot;, [0, 24, 32, 50, 70, 200])
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This will result in output that looks like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;[_id:0, count:1]
+[_id:24, count:2]
+[_id:32, count:1]
+[_id:50, count:1]
+[_id:70, count:2]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The default output is simply the lower bound as the &lt;code&gt;_id&lt;/code&gt; and a single field containing the size of that bucket.  This output can be modified using the &lt;code&gt;BucketOptions&lt;/code&gt; class.  The above example can be expanded to look like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;bucket(&amp;quot;$screenSize&amp;quot;, [0, 24, 32, 50, 70], new BucketOptions()
+                .defaultBucket(&amp;quot;monster&amp;quot;)
+                .output(sum(&amp;quot;count&amp;quot;, 1), push(&amp;quot;matches&amp;quot;, &amp;quot;$screenSize&amp;quot;)))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The optional value &lt;code&gt;defaultBucket&lt;/code&gt; defines the name of the bucket for values that fall outside defined bucket boundaries.  If &lt;code&gt;defaultBucket&lt;/code&gt; is undefined and values exist outside of the defined bucket boundaries, the stage will produce an error.  The other value is the &lt;code&gt;output&lt;/code&gt; field which defines the shape of the document output for each bucket.  The output of this stage looks something like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;[[_id: 0, count: 1, matches: [22]],
+ [_id: 24, count: 2, matches: [24, 30]],
+ [_id: 32, count: 1, matches: [42]],
+ [_id: 50, count: 1, matches: [55]],
+ [_id: monster, count: 2, matches: [75, 155]]]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This output contains not only the size of the bucket but also the values in the bucket.  Notice the enormous screen sizes are found in the synthetic bucket named &lt;code&gt;monster&lt;/code&gt; reflecting the outrageously large screen sizes.&lt;/p&gt;
+
+&lt;h3 id=&#34;bucketauto&#34;&gt;BucketAuto&lt;/h3&gt;
+
+&lt;p&gt;The &lt;a href=&#34;http://docs.mongodb.org/manual/reference/operator/aggregation/bucketAuto/
+&#34;&gt;&lt;code&gt;$bucketAuto&lt;/code&gt;&lt;/a&gt; pipeline stage automatically determines the boundaries of each bucket in its attempt to distribute the documents evenly into a specified number of buckets. Depending on the input documents, the number of buckets may be less than the specified number of buckets.&lt;/p&gt;
+
+&lt;p&gt;For example, this stage creates 10 buckets:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;bucketAuto(&amp;quot;$price&amp;quot;, 10)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This results in output that looks something like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;[[_id: [min: 2, max: 30], count: 14],
+ [_id: [min: 30, max: 58], count: 14],
+ [_id: [min: 58, max: 86], count: 14],
+ [_id: [min: 86, max: 114], count: 14],
+ [_id: [min: 114, max: 142], count: 14],
+ [_id: [min: 142, max: 170], count: 14],
+ [_id: [min: 170, max: 198], count: 14],
+ [_id: [min: 198, max: 226], count: 14],
+ [_id: [min: 226, max: 254], count: 14],
+ [_id: [min: 254, max: 274], count: 11]]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Note the uniformity of bucket sizes except for the last bucket.  For a more precise scheme of bucket definition, the &lt;code&gt;BucketAutoOptions&lt;/code&gt; class exposes the opportunity to use a &lt;a href=&#34;https://en.wikipedia.org/wiki/Preferred_number&#34;&gt;preferred number&lt;/a&gt; based scheme to determine those boundary values.  As with &lt;code&gt;BucketOptions&lt;/code&gt;, the output document shape can be defined using the &lt;code&gt;output&lt;/code&gt; value on &lt;code&gt;BucketAutoOptions&lt;/code&gt;.  An example of these options is shown below:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;bucketAuto(&amp;quot;$price&amp;quot;, 10, new BucketAutoOptions()
+            .granularity(BucketGranularity.POWERSOF2)
+            .output(sum(&amp;quot;count&amp;quot;, 1), avg(&amp;quot;avgPrice&amp;quot;, &amp;quot;$price&amp;quot;)))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;facet&#34;&gt;Facet&lt;/h3&gt;
+
+&lt;p&gt;The &lt;a href=&#34;http://docs.mongodb.org/manual/reference/operator/aggregation/facet/
+&#34;&gt;&lt;code&gt;$facet&lt;/code&gt;&lt;/a&gt; pipeline stage allows for the definition of a faceted search.  The stage is defined with a set of names and nested aggregation pipelines which define each particular facet.  For example, to return to the example of the television screen size search, the following &lt;code&gt;$facet&lt;/code&gt; will return a document that groups televisions by size and manufacturer:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;facet(
+	new Facet(&amp;quot;Screen Sizes&amp;quot;,
+		unwind(&amp;quot;$attributes&amp;quot;),
+		bucketAuto(&amp;quot;$attributes.screen_size&amp;quot;, 5, new BucketAutoOptions()
+			.output(sum(&amp;quot;count&amp;quot;, 1)))),
+	new Facet(&amp;quot;Manufacturer&amp;quot;,
+		sortByCount(&amp;quot;$attributes.manufacturer&amp;quot;),
+		limit(5))
+)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This stage returns a document that looks like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+	&amp;quot;Manufacturer&amp;quot;: [
+		{&amp;quot;_id&amp;quot;: &amp;quot;Vizio&amp;quot;, &amp;quot;count&amp;quot;: 17},
+		{&amp;quot;_id&amp;quot;: &amp;quot;Samsung&amp;quot;, &amp;quot;count&amp;quot;: 17},
+		{&amp;quot;_id&amp;quot;: &amp;quot;Sony&amp;quot;, &amp;quot;count&amp;quot;: 17}
+	],
+	&amp;quot;Screen Sizes&amp;quot;: [
+		{&amp;quot;_id&amp;quot;: {&amp;quot;min&amp;quot;: 35, &amp;quot;max&amp;quot;: 45}, &amp;quot;count&amp;quot;: 10},
+		{&amp;quot;_id&amp;quot;: {&amp;quot;min&amp;quot;: 45, &amp;quot;max&amp;quot;: 55}, &amp;quot;count&amp;quot;: 10},
+		{&amp;quot;_id&amp;quot;: {&amp;quot;min&amp;quot;: 55, &amp;quot;max&amp;quot;: 65}, &amp;quot;count&amp;quot;: 10},
+		{&amp;quot;_id&amp;quot;: {&amp;quot;min&amp;quot;: 65, &amp;quot;max&amp;quot;: 75}, &amp;quot;count&amp;quot;: 10},
+		{&amp;quot;_id&amp;quot;: {&amp;quot;min&amp;quot;: 75, &amp;quot;max&amp;quot;: 85}, &amp;quot;count&amp;quot;: 11}
+	]
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
 &lt;h3 id=&#34;creating-a-pipeline&#34;&gt;Creating a Pipeline&lt;/h3&gt;
 
 &lt;p&gt;The above pipeline operators are typically combined into a list and passed to the &lt;code&gt;aggregate&lt;/code&gt; method of a &lt;code&gt;MongoCollection&lt;/code&gt;.  For instance:&lt;/p&gt;

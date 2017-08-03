@@ -436,8 +436,23 @@ The Java driver provides the &lt;a href=&#34;/mongo-java-driver/3.4/mongo-java-d
 &lt;li&gt;&lt;p&gt;The example below requires a &lt;code&gt;restaurants&lt;/code&gt; collection in the &lt;code&gt;test&lt;/code&gt; database. To create and populate the collection, follow the directions in &lt;a href=&#34;https://github.com/mongodb/docs-assets/tree/drivers&#34;&gt;github&lt;/a&gt;.&lt;/p&gt;&lt;/li&gt;
 
 &lt;li&gt;&lt;p&gt;Include the following import statements:&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
 
-&lt;li&gt;&lt;p&gt;Include the following callback code which the examples in the tutorials will use:&lt;/p&gt;&lt;/li&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;import com.mongodb.Block;
+import com.mongodb.async.SingleResultCallback;
+import com.mongodb.async.client.MongoClient;
+import com.mongodb.async.client.MongoClients;
+import com.mongodb.async.client.MongoCollection;
+import com.mongodb.async.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Indexes;
+import com.mongodb.client.model.geojson.Point;
+import com.mongodb.client.model.geojson.Position;
+import org.bson.Document;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Include the following callback code which the examples in the tutorials will use:&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;SingleResultCallback&amp;lt;Void&amp;gt; callbackWhenFinished = new SingleResultCallback&amp;lt;Void&amp;gt;() {
@@ -910,7 +925,7 @@ import static com.mongodb.async.client.gridfs.helpers.AsynchronousChannelHelper.
 import com.mongodb.async.SingleResultCallback;
 
 import com.mongodb.Block;
-
+import static com.mongodb.client.model.Filters.eq;
 import java.nio.charset.StandardCharsets;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
@@ -1132,7 +1147,9 @@ streamToDownloadTo.close();
 
 &lt;p&gt;The following example renames a file to &amp;ldquo;mongodbTutorial&amp;rdquo;:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;gridFSBucket.rename(fileId, &amp;quot;mongodbTutorial&amp;quot;, new SingleResultCallback&amp;lt;Void&amp;gt;() {
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;ObjectId fileId; // The id of a file uploaded to GridFS, initialize to valid file id 
+...
+gridFSBucket.rename(fileId, &amp;quot;mongodbTutorial&amp;quot;, new SingleResultCallback&amp;lt;Void&amp;gt;() {
     @Override
     public void onResult(final Void result, final Throwable t) {
         System.out.println(&amp;quot;Renamed file&amp;quot;);
@@ -1156,7 +1173,9 @@ streamToDownloadTo.close();
 
 &lt;p&gt;The following example deletes a file from the &lt;code&gt;GridFSBucket&lt;/code&gt;:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;gridFSBucket.delete(fileId, new SingleResultCallback&amp;lt;Void&amp;gt;() {
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;ObjectId fileId; // The id of a file uploaded to GridFS, initialize to valid file id 
+...
+gridFSBucket.delete(fileId, new SingleResultCallback&amp;lt;Void&amp;gt;() {
     @Override
     public void onResult(final Void result, final Throwable t) {
         System.out.println(&amp;quot;Deleted file&amp;quot;);
@@ -1497,10 +1516,15 @@ create a credential of this type use the
 MongoCredential credential = MongoCredential.createMongoX509Credential(user);
 ClusterSettings clusterSettings = ClusterSettings.builder()
                                   .hosts(asList(new ServerAddress(&amp;quot;localhost&amp;quot;))).build();
+
+EventLoopGroup eventLoopGroup = new NioEventLoopGroup();  // make sure application shuts this down
+
 MongoClientSettings settings = MongoClientSettings.builder()
-                                  .clusterSettings(clusterSettings)
-                                  .credentialList(Arrays.asList(credential))
-                                  .build();
+                .clusterSettings(clusterSettings)
+                .credentialList(Arrays.asList(credential))
+                .streamFactoryFactory(NettyStreamFactoryFactory.builder().eventLoopGroup(eventLoopGroup).build())
+                .sslSettings(SslSettings.builder().enabled(true).build())
+                .build();
 MongoClient mongoClient = MongoClients.create(settings);
 &lt;/code&gt;&lt;/pre&gt;
 
@@ -1508,7 +1532,7 @@ MongoClient mongoClient = MongoClients.create(settings);
 &lt;code&gt;authMechanism=MONGODB-X509&lt;/code&gt;:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;MongoClient mongoClient = MongoClients.create(new ConnectionString(
-            &amp;quot;mongodb://subjectName@host1/?authMechanism=MONGODB-X509&amp;quot;));
+            &amp;quot;mongodb://subjectName@host1/?authMechanism=MONGODB-X509&amp;amp;streamType=netty&amp;amp;ssl=true&amp;quot;));
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;See the MongoDB server
@@ -1542,7 +1566,7 @@ MongoClient mongoClient = MongoClients.create(settings);
 &lt;code&gt;authMechanism=GSSAPI&lt;/code&gt;:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;MongoClient mongoClient = MongoClients.create(new ConnectionString(
-            &amp;quot;mongodb://username%40MYREALM.com@host1/?authMechanism=GSSAPI&amp;quot;));
+            &amp;quot;mongodb://username%40MYREALM.ME@host1/?authMechanism=GSSAPI&amp;quot;));
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;&lt;div class=&#34;admonition note&#34;&gt;
@@ -1772,7 +1796,7 @@ MongoClient mongoClient = MongoClients.create(settings);
 &lt;/ul&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;  MongoClient mongoClient = MongoClients.create(
-              ConnectionString(&amp;quot;mongodb://host1:27017,host2:27017,host3:27017&amp;quot;));
+        new ConnectionString(&amp;quot;mongodb://host1:27017,host2:27017,host3:27017&amp;quot;));
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;ul&gt;
@@ -3022,12 +3046,16 @@ Netty artifacts.  The driver is currently tested against Netty 4.0.&lt;/p&gt;
 &#34;&gt;&lt;code&gt;MongoClientSettings&lt;/code&gt;&lt;/a&gt; , set the &lt;code&gt;sslEnabled&lt;/code&gt; property to &lt;code&gt;true&lt;/code&gt;, and the stream factory to &lt;a href=&#34;/mongo-java-driver/3.4/mongo-java-driver/3.4/javadoc?com/mongodb/connection/netty/NettyStreamFactoryFactory.html
 &#34;&gt;&lt;code&gt;NettyStreamFactoryFactory&lt;/code&gt;&lt;/a&gt;, as in&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;MongoClient client = MongoClients.create(MongoClientSettings.builder()
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;
+EventLoopGroup eventLoopGroup = new NioEventLoopGroup();  // make sure application shuts this down
+
+
+MongoClient client = MongoClients.create(MongoClientSettings.builder()
                         .clusterSettings(ClusterSettings.builder()
                                           .hosts(Arrays.asList(new ServerAddress()))
                                           .build())
                         .streamFactoryFactory(NettyStreamFactoryFactory.builder()
-                                          .build())
+                                          .eventLoopGroup(eventLoopGroup).build())
                         .sslSettings(SslSettings.builder()
                                           .enabled(true)
                                           .build())
@@ -3058,7 +3086,10 @@ to the &lt;code&gt;javax.net.SSLParameters&lt;/code&gt; class.&lt;/p&gt;
 &lt;p&gt;If your application must run on Java 6, or for some other reason you need
 to disable host name verification, you must explicitly indicate this using the &lt;code&gt;invalidHostNameAllowed&lt;/code&gt; property:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;MongoClient client = MongoClients.create(MongoClientSettings.builder()
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;
+EventLoopGroup eventLoopGroup = new NioEventLoopGroup();  // make sure application shuts this down
+
+MongoClient client = MongoClients.create(MongoClientSettings.builder()
                                                  .clusterSettings(ClusterSettings.builder()
                                                                           .hosts(Arrays.asList(new ServerAddress()))
                                                                           .build())
@@ -3066,7 +3097,8 @@ to disable host name verification, you must explicitly indicate this using the &
                                                                        .enabled(true)
                                                                        .invalidHostNameAllowed(true)
                                                                        .build())
-                                                  .streamFactoryFactory(NettyStreamFactoryFactory.builder().build())
+                                                  .streamFactoryFactory(NettyStreamFactoryFactory.builder()
+                                                                            .eventLoopGroup(eventLoopGroup).build())
                                                   .build());
 &lt;/code&gt;&lt;/pre&gt;
 

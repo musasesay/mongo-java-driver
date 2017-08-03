@@ -3202,7 +3202,7 @@ import static com.mongodb.async.client.gridfs.helpers.AsynchronousChannelHelper.
 import com.mongodb.async.SingleResultCallback;
 
 import com.mongodb.Block;
-
+import static com.mongodb.client.model.Filters.eq;
 import java.nio.charset.StandardCharsets;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
@@ -3424,7 +3424,9 @@ streamToDownloadTo.close();
 
 <p>The following example renames a file to &ldquo;mongodbTutorial&rdquo;:</p>
 
-<pre><code class="language-java">gridFSBucket.rename(fileId, &quot;mongodbTutorial&quot;, new SingleResultCallback&lt;Void&gt;() {
+<pre><code class="language-java">ObjectId fileId; // The id of a file uploaded to GridFS, initialize to valid file id 
+...
+gridFSBucket.rename(fileId, &quot;mongodbTutorial&quot;, new SingleResultCallback&lt;Void&gt;() {
     @Override
     public void onResult(final Void result, final Throwable t) {
         System.out.println(&quot;Renamed file&quot;);
@@ -3448,7 +3450,9 @@ streamToDownloadTo.close();
 
 <p>The following example deletes a file from the <code>GridFSBucket</code>:</p>
 
-<pre><code class="language-java">gridFSBucket.delete(fileId, new SingleResultCallback&lt;Void&gt;() {
+<pre><code class="language-java">ObjectId fileId; // The id of a file uploaded to GridFS, initialize to valid file id 
+...
+gridFSBucket.delete(fileId, new SingleResultCallback&lt;Void&gt;() {
     @Override
     public void onResult(final Void result, final Throwable t) {
         System.out.println(&quot;Deleted file&quot;);

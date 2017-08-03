@@ -2165,7 +2165,7 @@
 <pre><code class="language-java">import org.bson.types.Decimal128;
 </code></pre>
 
-<p>The <a href="http://docs.mongodb.org/manual/release-notes/3.3-dev-series/#decimal-type
+<p>The <a href="http://docs.mongodb.org/manual/release-notes/3.4/#decimal-type
 ">Decimal128</a> format supports numbers with up to 34 decimal digits
 (i.e. significant digits) and an exponent range of −6143 to +6144.</p>
 
@@ -2196,12 +2196,12 @@
 <pre><code class="language-java">import com.mongodb.client.model.Collation;
 </code></pre>
 
-<p><a href="http://docs.mongodb.org/manual/release-notes/3.3-dev-series-collation/
+<p><a href="http://docs.mongodb.org/manual/reference/collation/
 ">Collation</a> allows users to specify language-specific rules for string
 comparison.
 Use the <a href="/mongo-java-driver/3.4/javadoc?com/mongodb/client/model/Collation.html
 "><code>Collation.builder()</code></a>
-to create the <code>Collation</code> object. For example, the following example creates a <code>Collation</code> object with Primary level of comparison and <a href="http://docs.mongodb.org/manual/release-notes/3.3-dev-series-collation/#supported-languages-and-locales
+to create the <code>Collation</code> object. For example, the following example creates a <code>Collation</code> object with Primary level of comparison and <a href="http://docs.mongodb.org/manual/reference/collation-locales-defaults/#supported-languages-and-locales
 ">locale</a> <code>fr</code>.</p>
 
 <pre><code class="language-java">Collation.builder().collationStrength(CollationStrength.PRIMARY).locale(&quot;fr&quot;).build()));
@@ -2305,7 +2305,7 @@ collection.bulkWrite(Arrays.asList(
 </code></pre>
 
 <p>For more information on collation, including the supported locales, refer to the
-<a href="http://docs.mongodb.org/manual/release-notes/3.3-dev-series-collation/
+<a href="http://docs.mongodb.org/manual/reference/collation/
 ">manual</a>.</p>
 
 <h3 id="other-mongodb-3-4-features">Other MongoDB 3.4 features</h3>
@@ -2315,10 +2315,11 @@ collection.bulkWrite(Arrays.asList(
 <a href="https://github.com/mongodb/specifications/blob/master/source/max-staleness/max-staleness.rst">maximum staleness for secondary reads</a></li>
 <li>Support for the
 <a href="https://github.com/mongodb/specifications/blob/master/source/mongodb-handshake/handshake.rst">MongoDB handshake protocol</a>.</li>
-<li>Builders for <a href="http://docs.mongodb.org/manual/release-notes/3.3-dev-series/#aggregation
+<li>Builders for <a href="http://docs.mongodb.org/manual/release-notes/3.4/#aggregation
 ">eight new aggregation pipeline stages</a></li>
-<li>Helpers for creating <a href="http://docs.mongodb.org/manual/release-notes/3.3-dev-series/#views
+<li>Helpers for creating <a href="http://docs.mongodb.org/manual/release-notes/3.4/#views
 ">read-only views</a></li>
+<li>Support for the <a href="https://docs.mongodb.com/master/release-notes/3.4/#linearizable-read-concern">linearizable read concern</a></li>
 </ul>
 
 <h3 id="support-for-jndi">Support for JNDI</h3>

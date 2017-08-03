@@ -281,6 +281,25 @@ MongoClient mongoClient = new MongoClient(uri);
  MongoClient client = new MongoClient(&quot;localhost&quot;, options);
 </code></pre>
 
+<h2 id="specify-sslcontext-via-mongoclientoptions">Specify <code>SSLContext</code> via <code>MongoClientOptions</code></h2>
+
+<pre><code class="language-java">import javax.net.ssl.SSLContext;
+import com.mongodb.MongoClientOptions;
+import com.mongodb.MongoClient;
+</code></pre>
+
+<p>To specify the <a href="https://docs.oracle.com/javase/8/docs/api/javax/net/ssl/SSLContext.html"><code>javax.net.ssl.SSLContext</code></a> with
+<a href="/mongo-java-driver/3.5/javadoc?com/mongodb/MongoClientOptions.html
+"><code>MongoClientOptions</code></a>, set the <code>sslContext</code> property, as in:</p>
+
+<pre><code class="language-java"> SSLContext sslContext = ...
+ MongoClientOptions options = MongoClientOptions.builder()
+                                                .sslEnabled(true)
+                                                .sslContext(sslContext)
+                                                .build();
+ MongoClient client = new MongoClient(&quot;localhost&quot;, options);
+</code></pre>
+
 <h2 id="disable-hostname-verification">Disable Hostname Verification</h2>
 
 <p>By default, the driver ensures that the hostname included in the
@@ -359,6 +378,7 @@ ERefGuide.html"><code>JSSE Reference Guide</code></a>.</p>
 <li><a href="#tls-ssl">TLS/SSL</a></li>
 <li><a href="#specify-tls-ssl-via-mongoclienturi">Specify TLS/SSL via <code>MongoClientURI</code></a></li>
 <li><a href="#specify-tls-ssl-via-mongoclientoptions">Specify TLS/SSL via <code>MongoClientOptions</code></a></li>
+<li><a href="#specify-sslcontext-via-mongoclientoptions">Specify <code>SSLContext</code> via <code>MongoClientOptions</code></a></li>
 <li><a href="#disable-hostname-verification">Disable Hostname Verification</a></li>
 <li><a href="#jvm-system-properties-for-tls-ssl">JVM System Properties for TLS/SSL</a></li>
 </ul></li>

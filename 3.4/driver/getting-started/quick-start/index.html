@@ -2239,6 +2239,8 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoCollection;
 
 import org.bson.Document;
+import java.util.Arrays;
+import com.mongodb.Block;
 
 import com.mongodb.client.MongoCursor;
 import static com.mongodb.client.model.Filters.*;
@@ -2595,8 +2597,6 @@ collection.find(gt(&quot;i&quot;, 50)).forEach(printBlock);
 
 <pre><code class="language-java">UpdateResult updateResult = collection.updateMany(lt(&quot;i&quot;, 100), inc(&quot;i&quot;, 100));
 System.out.println(updateResult.getModifiedCount());
-
-UpdateResult updateResult = collection.updateMany(lt(&quot;i&quot;, 100), new Document(&quot;$inc&quot;, new Document(&quot;i&quot;, 100))); System.out.println(updateResult.getModifiedCount());
 
 </code></pre>
 

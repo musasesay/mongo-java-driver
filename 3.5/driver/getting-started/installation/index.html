@@ -252,7 +252,7 @@
 <p>The recommended way to get started using one of the drivers in your
 project is with a dependency management system.</p>
 
-<p>There are two Maven artifacts available in the 3.4 release. The preferred artifact for new applications is <code>mongodb-driver</code>
+<p>There are two Maven artifacts available in the 3.5 release. The preferred artifact for new applications is <code>mongodb-driver</code>
 however, we still publish the legacy <code>mongo-java-driver</code> uber-jar.</p>
 
 <div class="pull-right">
@@ -279,41 +279,28 @@ however, we still publish the legacy <code>mongo-java-driver</code> uber-jar.</p
     &lt;dependency&gt;
         &lt;groupId&gt;org.mongodb&lt;/groupId&gt;
         &lt;artifactId&gt;mongodb-driver&lt;/artifactId&gt;
-        &lt;version&gt;3.5.0-SNAPSHOT&lt;/version&gt;
+        &lt;version&gt;3.5.0&lt;/version&gt;
     &lt;/dependency&gt;
 &lt;/dependencies&gt;
-&lt;repositories&gt;
-    &lt;repository&gt;
-        &lt;id&gt;sonatype-snapshots&lt;/id&gt;
-        &lt;name&gt;Sontatype Snapshots&lt;/name&gt;
-        &lt;url&gt;https://oss.sonatype.org/content/repositories/snapshots&lt;/url&gt;
-        &lt;snapshots&gt;
-            &lt;enabled&gt;true&lt;/enabled&gt;
-        &lt;/snapshots&gt;
-    &lt;/repository&gt;
-&lt;/repositories&gt;
+
 </code></pre>
 </section>
 <section class="gradle hidden">
 <pre><code>
   dependencies {
-      compile 'org.mongodb:mongodb-driver:3.5.0-SNAPSHOT'
-  }
-  repositories {
-    maven {
-      url 'https://oss.sonatype.org/content/repositories/snapshots'
-    }
+      compile 'org.mongodb:mongodb-driver:3.5.0'
   }
 
 </code></pre>
 </section>
 <section class="downloadInfo small">
-    <p><strong>Note:</strong> You can also download the jars
-        <a href="https://oss.sonatype.org/content/repositories/snapshots/org/mongodb/mongodb-driver/3.5.0-SNAPSHOT" target="_blank">directly</a>
+    <p><strong>Note:</strong> You can also download the <code>mongodb-driver</code> jar
+        <a href="https://oss.sonatype.org/content/repositories/releases/org/mongodb/mongodb-driver/3.5.0" target="_blank">directly</a>
         from sonatype.</a></p><p>
-        <code>mongodb-driver</code> requires the following dependencies:
-        <a href="https://oss.sonatype.org/content/repositories/snapshots/org/mongodb/bson/3.5.0-SNAPSHOT" target="_blank"><code>bson</code></a> and
-        <a href="https://oss.sonatype.org/content/repositories/snapshots/org/mongodb/mongodb-driver-core/3.5.0-SNAPSHOT" target="_blank"><code>mongodb-driver-core</code></a>
+        If downloading <code>mongodb-driver</code> manually,
+        you must also download its dependencies:
+        <a href="https://oss.sonatype.org/content/repositories/releases/org/mongodb/bson/3.5.0" target="_blank"><code>bson</code></a> and
+        <a href="https://oss.sonatype.org/content/repositories/releases/org/mongodb/mongodb-driver-core/3.5.0" target="_blank"><code>mongodb-driver-core</code></a>
     </p></section>
 
 <h2 id="uber-jar-legacy">Uber Jar (Legacy)</h2>
@@ -333,37 +320,23 @@ however, we still publish the legacy <code>mongo-java-driver</code> uber-jar.</p
     &lt;dependency&gt;
         &lt;groupId&gt;org.mongodb&lt;/groupId&gt;
         &lt;artifactId&gt;mongo-java-driver&lt;/artifactId&gt;
-        &lt;version&gt;3.5.0-SNAPSHOT&lt;/version&gt;
+        &lt;version&gt;3.5.0&lt;/version&gt;
     &lt;/dependency&gt;
 &lt;/dependencies&gt;
-&lt;repositories&gt;
-    &lt;repository&gt;
-        &lt;id&gt;sonatype-snapshots&lt;/id&gt;
-        &lt;name&gt;Sontatype Snapshots&lt;/name&gt;
-        &lt;url&gt;https://oss.sonatype.org/content/repositories/snapshots&lt;/url&gt;
-        &lt;snapshots&gt;
-            &lt;enabled&gt;true&lt;/enabled&gt;
-        &lt;/snapshots&gt;
-    &lt;/repository&gt;
-&lt;/repositories&gt;
+
 </code></pre>
 </section>
 <section class="gradle hidden">
 <pre><code>
   dependencies {
-      compile 'org.mongodb:mongo-java-driver:3.5.0-SNAPSHOT'
-  }
-  repositories {
-    maven {
-      url 'https://oss.sonatype.org/content/repositories/snapshots'
-    }
+      compile 'org.mongodb:mongo-java-driver:3.5.0'
   }
 
 </code></pre>
 </section>
 <section class="downloadInfo small">
-    <p><strong>Note:</strong> You can also download the jars
-        <a href="https://oss.sonatype.org/content/repositories/snapshots/org/mongodb/mongo-java-driver/3.5.0-SNAPSHOT" target="_blank">directly</a>
+    <p><strong>Note:</strong> You can also download the <code>mongo-java-driver</code> jar
+        <a href="https://oss.sonatype.org/content/repositories/releases/org/mongodb/mongo-java-driver/3.5.0" target="_blank">directly</a>
         from sonatype.</a></p></section>
 <div id="btnv"><div class="pull-right">
   <a class="navigation next" href="/mongo-java-driver/3.5/driver/getting-started/quick-start/">

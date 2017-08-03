@@ -2731,7 +2731,7 @@ collection.insertMany(documents);
 "><code>upsert</code></a> option or the <a href="http://docs.mongodb.org/manual/core/document-validation/#bypass-document-validation
 "><code>bypassDocumentationValidation</code></a> option.</p>
 
-<pre><code class="language-java">results = collection.replaceOne(
+<pre><code class="language-java">collection.replaceOne(
                 eq(&quot;name&quot;, &quot;Orange Patisserie and Gelateria&quot;),
                 new Document(&quot;stars&quot;, 5)
                         .append(&quot;contact&quot;, &quot;TBD&quot;)

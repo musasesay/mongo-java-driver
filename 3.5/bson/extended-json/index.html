@@ -247,27 +247,33 @@
 </ul>
 </div>
 
-<h2 id="mongodb-extended-json">MongoDB Extended JSON</h2>
+<h2 id="json">JSON</h2>
 
-<p>As discussed earlier, the Java driver supports reading and writing BSON documents represented as<br />
-<a href="http://docs.mongodb.org/manual/reference/mongodb-extended-json/">MongoDB Extended JSON</a>.  Both variants are supported:</p>
+<p>As discussed earlier, the Java driver supports reading and writing BSON documents represented as JSON values. The driver supports four
+standard variants:</p>
 
 <ul>
-<li>Strict Mode: representations of BSON types that conform to the <a href="http://www.json.org/">JSON RFC</a>. This is the
-format that <a href="http://docs.mongodb.org/manual/reference/program/mongoexport/">mongoexport</a> produces and
-<a href="http://docs.mongodb.org/manual/reference/program/mongoimport/">mongoimport</a> consumes.</li>
+<li>Extended Mode: Canonical representation that avoids any loss of BSON type information. See the
+<a href="https://github.com/mongodb/specifications/blob/master/source/extended-json.rst">Extended JSON specification</a> for a description of this
+mode.</li>
+<li>Relaxed Mode:  Relaxed representation that loses type information for BSON numeric types and uses a more human-readable representation
+of BSON dates. See the
+<a href="https://github.com/mongodb/specifications/blob/master/source/extended-json.rst">Extended JSON specification</a> for a description of this
+mode.</li>
 <li>Shell Mode: a superset of JSON that the
 <a href="http://docs.mongodb.org/manual/tutorial/getting-started-with-the-mongo-shell/">MongoDB shell</a> can parse.</li>
+<li>Strict Mode: Legacy representation.  Though now deprecated, this is still the default mode when writing JSON in order to avoid breaking
+backwards compatibility.  This may change in a future major release of the driver.</li>
 </ul>
 
-<p>Furthermore, the <code>Document</code> class provides two sets of convenience methods for this purpose:</p>
+<p>Furthermore, the <code>Document</code>, <code>BsonDocument</code>, and <code>BasicDBObject</code> classes each provide two sets of convenience methods for this purpose:</p>
 
 <ul>
-<li>toJson(): a set of overloaded methods that convert a <code>Document</code> instance to a JSON string</li>
-<li>parse(): a set of overloaded static factory methods that convert a JSON string to a <code>Document</code> instance</li>
+<li>toJson(): a set of overloaded methods that convert an instance to a JSON string</li>
+<li>parse(): a set of overloaded static factory methods that convert a JSON string to an instance of the class</li>
 </ul>
 
-<h2 id="writing-json">Writing JSON</h2>
+<h3 id="writing-json">Writing JSON</h3>
 
 <p>Consider the task of implementing a <a href="http://docs.mongodb.org/manual/reference/program/mongoexport/">mongoexport</a>-like tool using the
 Java driver.</p>
@@ -278,12 +284,15 @@ MongoCollection&lt;Document&gt; collection;  // initialize to the collection fro
 BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilename));
 
 try {
+    JsonWriterSettings settings = JsonWriterSettings.builder().outputMode(JsonMode.EXTENDED).build();
     for (Document doc : collection.find()) {
-        writer.write(doc.toJson());
+        writer.write(doc.toJson(settings));
         writer.newLine();
-} finally {
-   writer.close();
+    } finally{
+        writer.close();
+    }
 }
+
 </code></pre>
 
 <p>The <code>Document.toJson()</code> method constructs an instance of a <code>JsonWriter</code> with its default settings, which will write in strict mode with
@@ -304,7 +313,26 @@ System.out.println(doc.toJson(new JsonWriterSettings(JsonMode.SHELL)));
 <pre><code class="language-javascript">{ &quot;startDate&quot; : { &quot;$gt&quot; : ISODate(&quot;2014-01-01T05:00:00.000Z&quot;), &quot;$lt&quot; : ISODate(&quot;2015-01-01T05:00:00.000Z&quot;) } }
 </code></pre>
 
-<h2 id="reading-json">Reading JSON</h2>
+<h4 id="customizing-the-output">Customizing the output</h4>
+
+<p>Often applications have specific requirements on the structure of JSON that is generated from documents stored in MongoDB, where none of
+the modes described above will suffice.   For those situations a <code>JsonWriterSettings</code> instance can be customized with an application-provided
+<a href="/mongo-java-driver/3.5/javadoc?org/bson/json/Converter.html
+"><code>Converter</code></a> for each BSON type.</p>
+
+<p>Consider a situation where an application wants to output the hex string representation of an ObjectId as a simple JSON string.  Simply
+register a custom <code>Converter</code> with <code>JsonWriterSettings</code> for the ObjectId type:</p>
+
+<pre><code class="language-java">        JsonWriterSettings settings = JsonWriterSettings.builder()
+                                              .outputMode(JsonMode.RELAXED)
+                                              .objectIdConverter((value, writer) -&gt; writer.writeString(value.toHexString()))
+                                              .build();
+</code></pre>
+
+<p>A <code>JsonWriter</code> configured with these settings will use the given <code>JsonMode</code> as the default for all BSON types, but override the mode
+with any registered converters.</p>
+
+<h3 id="reading-json">Reading JSON</h3>
 
 <p>Consider the task of implementing a <a href="http://docs.mongodb.org/manual/reference/program/mongoimport/">mongoimport</a>-like tool using the
 Java driver.</p>
@@ -326,7 +354,7 @@ try {
 </code></pre>
 
 <p>The <code>Document.parse()</code> static factory method constructs an instance of a <code>JsonReader</code> with the given string and returns an instance of an
-equivalent Document instance. <code>JsonReader</code> automatically detects the JSON flavor in the string, so you do not need to specify it.</p>
+equivalent Document. <code>JsonReader</code> automatically detects the JSON flavor in the string, so you do not need to specify it.</p>
 <div id="btnv"><div class="pull-left">
   <a class="navigation prev" href="/mongo-java-driver/3.5/bson/pojos/">
       <i class="fa fa-long-arrow-left"> </i> POJOs
@@ -341,9 +369,14 @@ equivalent Document instance. <code>JsonReader</code> automatically detects the 
 <ul>
 <li>
 <ul>
-<li><a href="#mongodb-extended-json">MongoDB Extended JSON</a></li>
-<li><a href="#writing-json">Writing JSON</a></li>
+<li><a href="#json">JSON</a>
+<ul>
+<li><a href="#writing-json">Writing JSON</a>
+<ul>
+<li><a href="#customizing-the-output">Customizing the output</a></li>
+</ul></li>
 <li><a href="#reading-json">Reading JSON</a></li>
+</ul></li>
 </ul></li>
 </ul>
 </nav></div></div>

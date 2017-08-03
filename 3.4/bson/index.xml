@@ -608,7 +608,7 @@ BSON is short for Binary &lt;a href=&#34;http://json.org/&#34;&gt;JSON&lt;/a&gt;
     &amp;lt;dependency&amp;gt;
         &amp;lt;groupId&amp;gt;org.mongodb&amp;lt;/groupId&amp;gt;
         &amp;lt;artifactId&amp;gt;bson&amp;lt;/artifactId&amp;gt;
-        &amp;lt;version&amp;gt;3.4.0-beta1&amp;lt;/version&amp;gt;
+        &amp;lt;version&amp;gt;3.4.3&amp;lt;/version&amp;gt;
     &amp;lt;/dependency&amp;gt;
 &amp;lt;/dependencies&amp;gt;
 
@@ -617,14 +617,14 @@ BSON is short for Binary &lt;a href=&#34;http://json.org/&#34;&gt;JSON&lt;/a&gt;
 &lt;section class=&#34;gradle hidden&#34;&gt;
 &lt;pre&gt;&lt;code&gt;
   dependencies {
-      compile &#39;org.mongodb:bson:3.4.0-beta1&#39;
+      compile &#39;org.mongodb:bson:3.4.3&#39;
   }
 
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/section&gt;
 &lt;section class=&#34;downloadInfo small&#34;&gt;
     &lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; You can also download the &lt;code&gt;bson&lt;/code&gt; jar
-        &lt;a href=&#34;https://oss.sonatype.org/content/repositories/releases/org/mongodb/bson/3.4.0-beta1&#34; target=&#34;_blank&#34;&gt;directly&lt;/a&gt;
+        &lt;a href=&#34;https://oss.sonatype.org/content/repositories/releases/org/mongodb/bson/3.4.3&#34; target=&#34;_blank&#34;&gt;directly&lt;/a&gt;
         from sonatype.&lt;/a&gt;&lt;/p&gt;
     
 &lt;/section&gt;

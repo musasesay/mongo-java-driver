@@ -3126,8 +3126,23 @@
 <li><p>The example below requires a <code>restaurants</code> collection in the <code>test</code> database. To create and populate the collection, follow the directions in <a href="https://github.com/mongodb/docs-assets/tree/drivers">github</a>.</p></li>
 
 <li><p>Include the following import statements:</p></li>
+</ul>
 
-<li><p>Include the following callback code which the examples in the tutorials will use:</p></li>
+<pre><code class="language-java">import com.mongodb.Block;
+import com.mongodb.async.SingleResultCallback;
+import com.mongodb.async.client.MongoClient;
+import com.mongodb.async.client.MongoClients;
+import com.mongodb.async.client.MongoCollection;
+import com.mongodb.async.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Indexes;
+import com.mongodb.client.model.geojson.Point;
+import com.mongodb.client.model.geojson.Position;
+import org.bson.Document;
+</code></pre>
+
+<ul>
+<li>Include the following callback code which the examples in the tutorials will use:</li>
 </ul>
 
 <pre><code class="language-java">SingleResultCallback&lt;Void&gt; callbackWhenFinished = new SingleResultCallback&lt;Void&gt;() {

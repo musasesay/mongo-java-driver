@@ -2511,15 +2511,17 @@ create a credential of this type use the
 <pre><code class="language-java">String user;     // The X.509 certificate derived user name, e.g. &quot;CN=user,OU=OrgUnit,O=myOrg,...&quot;
 // ...
 MongoCredential credential = MongoCredential.createMongoX509Credential(user);
+MongoClientOptions options = MongoClientOptions.builder().sslEnabled(true).build();
+
 
 MongoClient mongoClient = new MongoClient(new ServerAddress(&quot;host1&quot;, 27017),
-                                         Arrays.asList(credential));
+                                         Arrays.asList(credential), options);
 </code></pre>
 
 <p>Or use a connection string that explicitly specifies the
 <code>authMechanism=MONGODB-X509</code>:</p>
 
-<pre><code class="language-java">MongoClientURI uri = new MongoClientURI(&quot;mongodb://subjectName@host1/?authMechanism=MONGODB-X509&quot;);
+<pre><code class="language-java">MongoClientURI uri = new MongoClientURI(&quot;mongodb://subjectName@host1/?authMechanism=MONGODB-X509&amp;ssl=true&quot;);
 MongoClient mongoClient = new MongoClient(uri);
 </code></pre>
 
@@ -2546,7 +2548,7 @@ MongoCredential credential = MongoCredential.createGSSAPICredential(user);
 <p>Or use a connection string that explicitly specifies the
 <code>authMechanism=GSSAPI</code>:</p>
 
-<pre><code class="language-java">MongoClientURI uri = new MongoClientURI(&quot;mongodb://username%40REALM.com@host1/?authMechanism=GSSAPI&quot;);
+<pre><code class="language-java">MongoClientURI uri = new MongoClientURI(&quot;mongodb://username%40REALM.ME@host1/?authMechanism=GSSAPI&quot;);
 </code></pre>
 
 <p><div class="admonition note">

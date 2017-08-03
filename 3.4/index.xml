@@ -445,10 +445,12 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.gridfs.*;
 import com.mongodb.client.gridfs.model.*;
-
+import org.bson.Document;
+import org.bson.types.ObjectId;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.charset.StandardCharsets;
+import static com.mongodb.client.model.Filters.eq;
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;h2 id=&#34;connect-to-a-mongodb-deployment&#34;&gt;Connect to a MongoDB Deployment&lt;/h2&gt;
@@ -517,7 +519,7 @@ try {
 
     ObjectId fileId = gridFSBucket.uploadFromStream(&amp;quot;mongodb-tutorial&amp;quot;, streamToUploadFrom, options);
 } catch (FileNotFoundException e){
-    System.out.println(e.getMessage());
+   // handle exception
 }
 &lt;/code&gt;&lt;/pre&gt;
 
@@ -533,17 +535,19 @@ try {
 &lt;p&gt;The following example uploads into a &lt;code&gt;GridFSBucket&lt;/code&gt; via the returned &lt;code&gt;GridFSUploadStream&lt;/code&gt;:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;try {
-    GridFSUploadStream uploadStream = gridFSBucketFiles.openUploadStream(&amp;quot;mongodb-tutorial-2&amp;quot;, options);
+    GridFSUploadOptions options = new GridFSUploadOptions()
+                       .chunkSizeBytes(358400)
+                       .metadata(new Document(&amp;quot;type&amp;quot;, &amp;quot;presentation&amp;quot;));
+
+    GridFSUploadStream uploadStream = gridFSFilesBucket.openUploadStream(&amp;quot;mongodb-tutorial-2&amp;quot;, options);
     byte[] data = Files.readAllBytes(new File(&amp;quot;/tmp/MongoDB-manual-master.pdf&amp;quot;).toPath());
 
     uploadStream.write(data);
     uploadStream.close();
-    System.out.println(&amp;quot;The fileId of the uploaded file is: &amp;quot; + uploadStream.getFileId().toHexString());
+    System.out.println(&amp;quot;The fileId of the uploaded file is: &amp;quot; + uploadStream.getObjectId().toHexString());
 
-} catch (FileNotFoundException e1){
-    System.out.println(e1.getMessage());
-} catch(IOException e2){
-    System.out.println(e2.getMessage());
+} catch(IOException e){
+    // handle exception
 }
 &lt;/code&gt;&lt;/pre&gt;
 
@@ -585,10 +589,17 @@ try {
 following example downloads a file by its file &lt;code&gt;_id&lt;/code&gt; into the provided
 &lt;code&gt;OutputStream&lt;/code&gt;:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;FileOutputStream streamToDownloadTo = new FileOutputStream(&amp;quot;/tmp/mongodb-tutorial.pdf&amp;quot;);
-gridFSBucket.downloadToStream(fileId, streamToDownloadTo);
-streamToDownloadTo.close();
-System.out.println(streamToDownloadTo.toString());
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;ObjectId fileId; //The id of a file uploaded to GridFS, initialize to valid file id 
+
+try {
+    FileOutputStream streamToDownloadTo = new FileOutputStream(&amp;quot;/tmp/mongodb-tutorial.pdf&amp;quot;);
+    gridFSBucket.downloadToStream(fileId, streamToDownloadTo);
+    streamToDownloadTo.close();
+    System.out.println(streamToDownloadTo.toString());
+} catch (IOException e) {
+    // handle exception
+}
+
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;If you don&amp;rsquo;t know the &lt;code&gt;_id&lt;/code&gt; of the file but know the filename, then you can pass the filename to the &lt;a href=&#34;/mongo-java-driver/3.4/mongo-java-driver/3.4/javadoc?com/mongodb/client/gridfs/GridFSBucket.html#downloadToStream-java.lang.String-java.io.OutputStream-com.mongodb.client.gridfs.model.GridFSDownloadOptions-
@@ -597,10 +608,15 @@ System.out.println(streamToDownloadTo.toString());
 
 &lt;p&gt;The following example downloads the original version of the file named &amp;ldquo;mongodb-tutorial&amp;rdquo; into the &lt;code&gt;OutputStream&lt;/code&gt;:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;FileOutputStream streamToDownloadTo = new FileOutputStream(&amp;quot;/tmp/mongodb-tutorial.pdf&amp;quot;);
-GridFSDownloadOptions downloadOptions = new GridFSDownloadOptions().revision(0);
-gridFSBucket.downloadToStream(&amp;quot;mongodb-tutorial&amp;quot;, streamToDownloadTo, downloadOptions);
-streamToDownloadTo.close();   
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;try {
+    FileOutputStream streamToDownloadTo = new FileOutputStream(&amp;quot;/tmp/mongodb-tutorial.pdf&amp;quot;);
+    GridFSDownloadOptions downloadOptions = new GridFSDownloadOptions().revision(0);
+    gridFSBucket.downloadToStream(&amp;quot;mongodb-tutorial&amp;quot;, streamToDownloadTo, downloadOptions);
+    streamToDownloadTo.close();
+} catch (IOException e) {
+   // handle exception
+}
+
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;h3 id=&#34;opendownloadstream&#34;&gt;OpenDownloadStream&lt;/h3&gt;
@@ -611,7 +627,9 @@ streamToDownloadTo.close();
 
 &lt;p&gt;The following example reads from the &lt;code&gt;GridFSBucket&lt;/code&gt; via the returned &lt;code&gt;InputStream&lt;/code&gt;:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;GridFSDownloadStream downloadStream = gridFSBucket.openDownloadStream(fileId);
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;ObjectId fileId; //The id of a file uploaded to GridFS, initialize to valid file id 
+
+GridFSDownloadStream downloadStream = gridFSBucket.openDownloadStream(fileId);
 int fileLength = (int) downloadStream.getGridFSFile().getLength();
 byte[] bytesToWriteTo = new byte[fileLength];
 downloadStream.read(bytesToWriteTo);
@@ -642,7 +660,9 @@ System.out.println(new String(bytesToWriteTo, StandardCharsets.UTF_8));
 
 &lt;p&gt;The following example renames a file to &amp;ldquo;mongodbTutorial&amp;rdquo;:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;gridFSBucket.rename(fileId, &amp;quot;mongodbTutorial&amp;quot;);
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;ObjectId fileId; //ObjectId of a file uploaded to GridFS
+
+gridFSBucket.rename(fileId, &amp;quot;mongodbTutorial&amp;quot;);
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;&lt;div class=&#34;admonition note&#34;&gt;
@@ -661,7 +681,9 @@ System.out.println(new String(bytesToWriteTo, StandardCharsets.UTF_8));
 
 &lt;p&gt;The following example deletes a file from the &lt;code&gt;GridFSBucket&lt;/code&gt;:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;gridFSBucket.delete(fileId);
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;ObjectId fileId; //ObjectId of a file uploaded to GridFS
+
+gridFSBucket.delete(fileId);
 &lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
@@ -686,7 +708,8 @@ System.out.println(new String(bytesToWriteTo, StandardCharsets.UTF_8));
 
 &lt;li&gt;&lt;p&gt;Include the following import statements:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt; import com.mongodb.MongoClient;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt; import com.mongodb.Block;
+ import com.mongodb.MongoClient;
  import com.mongodb.client.MongoCollection;
  import com.mongodb.client.MongoDatabase;
  import com.mongodb.client.MongoCursor;
@@ -766,8 +789,23 @@ collection.find(Filters.near(&amp;quot;contact.location&amp;quot;, refPoint, 500
 &lt;li&gt;&lt;p&gt;The example below requires a &lt;code&gt;restaurants&lt;/code&gt; collection in the &lt;code&gt;test&lt;/code&gt; database. To create and populate the collection, follow the directions in &lt;a href=&#34;https://github.com/mongodb/docs-assets/tree/drivers&#34;&gt;github&lt;/a&gt;.&lt;/p&gt;&lt;/li&gt;
 
 &lt;li&gt;&lt;p&gt;Include the following import statements:&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
 
-&lt;li&gt;&lt;p&gt;Include the following callback code which the examples in the tutorials will use:&lt;/p&gt;&lt;/li&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;import com.mongodb.Block;
+import com.mongodb.async.SingleResultCallback;
+import com.mongodb.async.client.MongoClient;
+import com.mongodb.async.client.MongoClients;
+import com.mongodb.async.client.MongoCollection;
+import com.mongodb.async.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Indexes;
+import com.mongodb.client.model.geojson.Point;
+import com.mongodb.client.model.geojson.Position;
+import org.bson.Document;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Include the following callback code which the examples in the tutorials will use:&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;SingleResultCallback&amp;lt;Void&amp;gt; callbackWhenFinished = new SingleResultCallback&amp;lt;Void&amp;gt;() {
@@ -1432,7 +1470,7 @@ collection.insertMany(documents);
 &#34;&gt;&lt;code&gt;upsert&lt;/code&gt;&lt;/a&gt; option or the &lt;a href=&#34;http://docs.mongodb.org/manual/core/document-validation/#bypass-document-validation
 &#34;&gt;&lt;code&gt;bypassDocumentationValidation&lt;/code&gt;&lt;/a&gt; option.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;results = collection.replaceOne(
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;collection.replaceOne(
                 eq(&amp;quot;name&amp;quot;, &amp;quot;Orange Patisserie and Gelateria&amp;quot;),
                 new Document(&amp;quot;stars&amp;quot;, 5)
                         .append(&amp;quot;contact&amp;quot;, &amp;quot;TBD&amp;quot;)
@@ -1563,7 +1601,7 @@ collection.insertMany(documents);
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;import org.bson.types.Decimal128;
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;The &lt;a href=&#34;http://docs.mongodb.org/manual/release-notes/3.3-dev-series/#decimal-type
+&lt;p&gt;The &lt;a href=&#34;http://docs.mongodb.org/manual/release-notes/3.4/#decimal-type
 &#34;&gt;Decimal128&lt;/a&gt; format supports numbers with up to 34 decimal digits
 (i.e. significant digits) and an exponent range of −6143 to +6144.&lt;/p&gt;
 
@@ -1594,12 +1632,12 @@ collection.insertMany(documents);
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;import com.mongodb.client.model.Collation;
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;&lt;a href=&#34;http://docs.mongodb.org/manual/release-notes/3.3-dev-series-collation/
+&lt;p&gt;&lt;a href=&#34;http://docs.mongodb.org/manual/reference/collation/
 &#34;&gt;Collation&lt;/a&gt; allows users to specify language-specific rules for string
 comparison.
 Use the &lt;a href=&#34;/mongo-java-driver/3.4/mongo-java-driver/3.4/javadoc?com/mongodb/client/model/Collation.html
 &#34;&gt;&lt;code&gt;Collation.builder()&lt;/code&gt;&lt;/a&gt;
-to create the &lt;code&gt;Collation&lt;/code&gt; object. For example, the following example creates a &lt;code&gt;Collation&lt;/code&gt; object with Primary level of comparison and &lt;a href=&#34;http://docs.mongodb.org/manual/release-notes/3.3-dev-series-collation/#supported-languages-and-locales
+to create the &lt;code&gt;Collation&lt;/code&gt; object. For example, the following example creates a &lt;code&gt;Collation&lt;/code&gt; object with Primary level of comparison and &lt;a href=&#34;http://docs.mongodb.org/manual/reference/collation-locales-defaults/#supported-languages-and-locales
 &#34;&gt;locale&lt;/a&gt; &lt;code&gt;fr&lt;/code&gt;.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;Collation.builder().collationStrength(CollationStrength.PRIMARY).locale(&amp;quot;fr&amp;quot;).build()));
@@ -1703,7 +1741,7 @@ collection.bulkWrite(Arrays.asList(
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;For more information on collation, including the supported locales, refer to the
-&lt;a href=&#34;http://docs.mongodb.org/manual/release-notes/3.3-dev-series-collation/
+&lt;a href=&#34;http://docs.mongodb.org/manual/reference/collation/
 &#34;&gt;manual&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h3 id=&#34;other-mongodb-3-4-features&#34;&gt;Other MongoDB 3.4 features&lt;/h3&gt;
@@ -1713,10 +1751,11 @@ collection.bulkWrite(Arrays.asList(
 &lt;a href=&#34;https://github.com/mongodb/specifications/blob/master/source/max-staleness/max-staleness.rst&#34;&gt;maximum staleness for secondary reads&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;Support for the
 &lt;a href=&#34;https://github.com/mongodb/specifications/blob/master/source/mongodb-handshake/handshake.rst&#34;&gt;MongoDB handshake protocol&lt;/a&gt;.&lt;/li&gt;
-&lt;li&gt;Builders for &lt;a href=&#34;http://docs.mongodb.org/manual/release-notes/3.3-dev-series/#aggregation
+&lt;li&gt;Builders for &lt;a href=&#34;http://docs.mongodb.org/manual/release-notes/3.4/#aggregation
 &#34;&gt;eight new aggregation pipeline stages&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;Helpers for creating &lt;a href=&#34;http://docs.mongodb.org/manual/release-notes/3.3-dev-series/#views
+&lt;li&gt;Helpers for creating &lt;a href=&#34;http://docs.mongodb.org/manual/release-notes/3.4/#views
 &#34;&gt;read-only views&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Support for the &lt;a href=&#34;https://docs.mongodb.com/master/release-notes/3.4/#linearizable-read-concern&#34;&gt;linearizable read concern&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h3 id=&#34;support-for-jndi&#34;&gt;Support for JNDI&lt;/h3&gt;
@@ -1757,6 +1796,9 @@ collection.bulkWrite(Arrays.asList(
  import com.mongodb.client.model.Accumulators;
  import com.mongodb.client.model.Projections;
  import com.mongodb.client.model.Filters;
+
+
+ import org.bson.Document;
 &lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
 
 &lt;li&gt;&lt;p&gt;Include the following code which the examples in the tutorials will use to print the results of the aggregation:&lt;/p&gt;
@@ -1869,7 +1911,8 @@ The Java driver provides the &lt;a href=&#34;/mongo-java-driver/3.4/mongo-java-d
 
 &lt;li&gt;&lt;p&gt;Include the following import statements:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt; import com.mongodb.MongoClient;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt; import com.mongodb.Block;
+ import com.mongodb.MongoClient;
  import com.mongodb.client.MongoCollection;
  import com.mongodb.client.MongoDatabase;
 
@@ -1878,6 +1921,7 @@ The Java driver provides the &lt;a href=&#34;/mongo-java-driver/3.4/mongo-java-d
  import com.mongodb.client.model.Filters;
  import com.mongodb.client.model.Sorts;
  import com.mongodb.client.model.TextSearchOptions;
+ import com.mongodb.client.model.Projections;
  import org.bson.Document;
 &lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
 
@@ -2538,7 +2582,7 @@ documents for the various MongoDB Index key types.&lt;/p&gt;
  import org.bson.Document;
 
 
- import com.mongodb.client.model.Indexes.;
+ import com.mongodb.client.model.Indexes;
  import com.mongodb.client.model.IndexOptions;
  import com.mongodb.client.model.Filters;
 &lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;

@@ -3654,6 +3654,178 @@ collection.  It must be the last stage in any aggregate pipeline:</p>
 <pre><code class="language-java">out(&quot;authors&quot;)
 </code></pre>
 
+<h3 id="graphlookup">GraphLookup</h3>
+
+<p>The <a href="http://docs.mongodb.org/manual/reference/operator/aggregation/graphLookup/
+"><code>$graphLookup</code></a> pipeline stage performs a recursive search on a specified collection to match field A of one document to some field B of the other documents. For the matching documents, the stage repeats the search to match field A from the matching documents to the field B of the remaining documents until no new documents are encountered or until a specified depth. To each output document, <code>$graphLookup</code> adds a new array field that contains the traversal results of the search for that document.</p>
+
+<p>The following example computes the social network graph for users in the <code>contacts</code> collection, recursively matching the value in the <code>friends</code> field to the <code>name</code> field, up to recursive depth of 1.</p>
+
+<pre><code class="language-java">graphLookup(&quot;contacts&quot;, &quot;$friends&quot;, &quot;friends&quot;, &quot;name&quot;, &quot;socialNetwork&quot;,
+	new GraphLookupOptions().maxDepth(1))
+</code></pre>
+
+<p>Using <code>GraphLookupOptions</code>, the output can be tailored to restrict the depth of the recursion as well to inject a field containing the depth of the recursion at which a document was included.</p>
+
+<h3 id="sortbycount">SortByCount</h3>
+
+<p>The <a href="http://docs.mongodb.org/manual/reference/operator/aggregation/sortByCount/
+"><code>$sortByCount</code></a> stage groups documents by a given expression and then sorts these groups by count in descending order. The <code>sortByCount</code> outputs documents that contains an <code>_id</code> field, which contains the discrete values of the given expression, and the <code>count</code> field that contains the number of documents that fall into that group.</p>
+
+<p>The following example groups documents by the truncated value of the field <code>x</code> and computes the count for each distinct value of <code>x</code>.</p>
+
+<pre><code class="language-java">sortByCount(new Document(&quot;$floor&quot;, &quot;$x&quot;))
+</code></pre>
+
+<h3 id="replaceroot">ReplaceRoot</h3>
+
+<p>The <a href="http://docs.mongodb.org/manual/reference/operator/aggregation/replaceRoot/
+"><code>$replaceRoot</code></a> pipeline stage replaces each input document to the stage with the specified document. All existing fields, including the <code>_id</code> field, are replaced.</p>
+
+<p>If each input document to the <code>replaceRoot</code> stage has a field <code>a1</code> that contains a field <code>b</code> whose value is a document, the following operation replaces each input document with the document in the <code>b</code> field.</p>
+
+<pre><code class="language-java">replaceRoot(&quot;$a1.b&quot;)
+</code></pre>
+
+<h3 id="addfields">AddFields</h3>
+
+<p>The <a href="http://docs.mongodb.org/manual/reference/operator/aggregation/addFields/
+"><code>$addFields</code></a> pipeline stage adds new fields to documents. The stage outputs documents that contain all existing fields from the input documents and the newly added fields.</p>
+
+<p>This example adds two new fields, <code>myNewField</code> and <code>z</code> to the input documents; <code>myNewField</code> has the value <code>{c: 3, d: 4}</code>, <code>z</code> has the value 5.</p>
+
+<pre><code class="language-java">addFields(new Field(&quot;myNewField&quot;, new Document(&quot;c&quot;, 3).append(&quot;d&quot;, 4)),
+	new Field(&quot;z&quot;, 5))
+</code></pre>
+
+<p>These new fields do not need be statically defined.  The following example shows how to add a new field which is a function of the current document&rsquo;s values.  In this case, a new field <code>alt3</code> is added with a value of <code>true</code> if the current value of the field <code>a</code> is less than 3.  Otherwise, <code>alt3</code> will be <code>false</code> in the new field.</p>
+
+<pre><code class="language-java">addFields(new Field(&quot;alt3&quot;, new Document(&quot;$lt&quot;, asList(&quot;$a&quot;, 3))))
+</code></pre>
+
+<h3 id="count">Count</h3>
+
+<p>The <a href="http://docs.mongodb.org/manual/reference/operator/aggregation/count/
+"><code>$count</code></a> pipeline stage specifies the name of the field that will contain the number of documents that enter this stage.  The <code>$count</code> stage is syntactic sugar for: <code>{$group:{_id:null, count:{$sum:1}}}</code></p>
+
+<p>There are two ways to invoke this stage.  The first way is to explicitly name the resulting field as in the two following examples:</p>
+
+<pre><code class="language-java">count(&quot;count&quot;)
+</code></pre>
+
+<pre><code class="language-java">count(&quot;total&quot;)
+</code></pre>
+
+<p>These two invocations will put the count in the <code>count</code> and <code>total</code> fields respectively.  If <code>count</code> is the field name to be used, this can be shortened with the following convenience method:</p>
+
+<pre><code class="language-java">count()
+</code></pre>
+
+<p>This invocation defaults the field name to <code>count</code>.</p>
+
+<h3 id="bucket">Bucket</h3>
+
+<p>The <a href="http://docs.mongodb.org/manual/reference/operator/aggregation/bucket/
+"><code>$bucket</code></a> pipeline stage automates the bucketing of data around predefined boundary values.</p>
+
+<p>The following example shows a basic <code>$bucket</code> stage:</p>
+
+<pre><code class="language-java">bucket(&quot;$screenSize&quot;, [0, 24, 32, 50, 70, 200])
+</code></pre>
+
+<p>This will result in output that looks like this:</p>
+
+<pre><code class="language-json">[_id:0, count:1]
+[_id:24, count:2]
+[_id:32, count:1]
+[_id:50, count:1]
+[_id:70, count:2]
+</code></pre>
+
+<p>The default output is simply the lower bound as the <code>_id</code> and a single field containing the size of that bucket.  This output can be modified using the <code>BucketOptions</code> class.  The above example can be expanded to look like this:</p>
+
+<pre><code class="language-java">bucket(&quot;$screenSize&quot;, [0, 24, 32, 50, 70], new BucketOptions()
+                .defaultBucket(&quot;monster&quot;)
+                .output(sum(&quot;count&quot;, 1), push(&quot;matches&quot;, &quot;$screenSize&quot;)))
+</code></pre>
+
+<p>The optional value <code>defaultBucket</code> defines the name of the bucket for values that fall outside defined bucket boundaries.  If <code>defaultBucket</code> is undefined and values exist outside of the defined bucket boundaries, the stage will produce an error.  The other value is the <code>output</code> field which defines the shape of the document output for each bucket.  The output of this stage looks something like this:</p>
+
+<pre><code class="language-json">[[_id: 0, count: 1, matches: [22]],
+ [_id: 24, count: 2, matches: [24, 30]],
+ [_id: 32, count: 1, matches: [42]],
+ [_id: 50, count: 1, matches: [55]],
+ [_id: monster, count: 2, matches: [75, 155]]]
+</code></pre>
+
+<p>This output contains not only the size of the bucket but also the values in the bucket.  Notice the enormous screen sizes are found in the synthetic bucket named <code>monster</code> reflecting the outrageously large screen sizes.</p>
+
+<h3 id="bucketauto">BucketAuto</h3>
+
+<p>The <a href="http://docs.mongodb.org/manual/reference/operator/aggregation/bucketAuto/
+"><code>$bucketAuto</code></a> pipeline stage automatically determines the boundaries of each bucket in its attempt to distribute the documents evenly into a specified number of buckets. Depending on the input documents, the number of buckets may be less than the specified number of buckets.</p>
+
+<p>For example, this stage creates 10 buckets:</p>
+
+<pre><code class="language-java">bucketAuto(&quot;$price&quot;, 10)
+</code></pre>
+
+<p>This results in output that looks something like this:</p>
+
+<pre><code class="language-json">[[_id: [min: 2, max: 30], count: 14],
+ [_id: [min: 30, max: 58], count: 14],
+ [_id: [min: 58, max: 86], count: 14],
+ [_id: [min: 86, max: 114], count: 14],
+ [_id: [min: 114, max: 142], count: 14],
+ [_id: [min: 142, max: 170], count: 14],
+ [_id: [min: 170, max: 198], count: 14],
+ [_id: [min: 198, max: 226], count: 14],
+ [_id: [min: 226, max: 254], count: 14],
+ [_id: [min: 254, max: 274], count: 11]]
+</code></pre>
+
+<p>Note the uniformity of bucket sizes except for the last bucket.  For a more precise scheme of bucket definition, the <code>BucketAutoOptions</code> class exposes the opportunity to use a <a href="https://en.wikipedia.org/wiki/Preferred_number">preferred number</a> based scheme to determine those boundary values.  As with <code>BucketOptions</code>, the output document shape can be defined using the <code>output</code> value on <code>BucketAutoOptions</code>.  An example of these options is shown below:</p>
+
+<pre><code class="language-java">bucketAuto(&quot;$price&quot;, 10, new BucketAutoOptions()
+            .granularity(BucketGranularity.POWERSOF2)
+            .output(sum(&quot;count&quot;, 1), avg(&quot;avgPrice&quot;, &quot;$price&quot;)))
+</code></pre>
+
+<h3 id="facet">Facet</h3>
+
+<p>The <a href="http://docs.mongodb.org/manual/reference/operator/aggregation/facet/
+"><code>$facet</code></a> pipeline stage allows for the definition of a faceted search.  The stage is defined with a set of names and nested aggregation pipelines which define each particular facet.  For example, to return to the example of the television screen size search, the following <code>$facet</code> will return a document that groups televisions by size and manufacturer:</p>
+
+<pre><code class="language-java">facet(
+	new Facet(&quot;Screen Sizes&quot;,
+		unwind(&quot;$attributes&quot;),
+		bucketAuto(&quot;$attributes.screen_size&quot;, 5, new BucketAutoOptions()
+			.output(sum(&quot;count&quot;, 1)))),
+	new Facet(&quot;Manufacturer&quot;,
+		sortByCount(&quot;$attributes.manufacturer&quot;),
+		limit(5))
+)
+</code></pre>
+
+<p>This stage returns a document that looks like this:</p>
+
+<pre><code class="language-json">{
+	&quot;Manufacturer&quot;: [
+		{&quot;_id&quot;: &quot;Vizio&quot;, &quot;count&quot;: 17},
+		{&quot;_id&quot;: &quot;Samsung&quot;, &quot;count&quot;: 17},
+		{&quot;_id&quot;: &quot;Sony&quot;, &quot;count&quot;: 17}
+	],
+	&quot;Screen Sizes&quot;: [
+		{&quot;_id&quot;: {&quot;min&quot;: 35, &quot;max&quot;: 45}, &quot;count&quot;: 10},
+		{&quot;_id&quot;: {&quot;min&quot;: 45, &quot;max&quot;: 55}, &quot;count&quot;: 10},
+		{&quot;_id&quot;: {&quot;min&quot;: 55, &quot;max&quot;: 65}, &quot;count&quot;: 10},
+		{&quot;_id&quot;: {&quot;min&quot;: 65, &quot;max&quot;: 75}, &quot;count&quot;: 10},
+		{&quot;_id&quot;: {&quot;min&quot;: 75, &quot;max&quot;: 85}, &quot;count&quot;: 11}
+	]
+}
+
+</code></pre>
+
 <h3 id="creating-a-pipeline">Creating a Pipeline</h3>
 
 <p>The above pipeline operators are typically combined into a list and passed to the <code>aggregate</code> method of a <code>MongoCollection</code>.  For instance:</p>
@@ -3712,6 +3884,14 @@ collection.  It must be the last stage in any aggregate pipeline:</p>
 <li><a href="#group">Group</a></li>
 <li><a href="#unwind">Unwind</a></li>
 <li><a href="#out">Out</a></li>
+<li><a href="#graphlookup">GraphLookup</a></li>
+<li><a href="#sortbycount">SortByCount</a></li>
+<li><a href="#replaceroot">ReplaceRoot</a></li>
+<li><a href="#addfields">AddFields</a></li>
+<li><a href="#count">Count</a></li>
+<li><a href="#bucket">Bucket</a></li>
+<li><a href="#bucketauto">BucketAuto</a></li>
+<li><a href="#facet">Facet</a></li>
 <li><a href="#creating-a-pipeline">Creating a Pipeline</a></li>
 </ul></li>
 </ul></li>

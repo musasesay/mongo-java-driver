@@ -299,23 +299,79 @@ POJOs. Here are the main implementation details:</li>
 </ul>
 
 <pre><code class="language-java">public final class Person {
-    ObjectId id;
-    String name;
-    int age;
-    Address address;
+    private ObjectId id;
+    private String name;
+    private int age;
+    private Address address;
 
     public Person() {
+    }
+
+    public ObjectId getId() {
+        return id;
+    }
+
+    public void setId(final ObjectId id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(final int age) {
+        this.age = age;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(final Address address) {
+        this.address = address;
     }
     
     // Rest of implementation
 }
 
 public final class Address {
-    String street;
-    String city;
-    String zip;
+    private String street;
+    private String city;
+    private String zip;
 
     public Address() {
+    }
+
+    public String getStreet() {
+        return street;
+    }
+
+    public void setStreet(final String street) {
+        this.street = street;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(final String city) {
+        this.city = city;
+    }
+
+    public String getZip() {
+        return zip;
+    }
+
+    public void setZip(final String zip) {
+        this.zip = zip;
     }
     
     // Rest of implementation
@@ -329,11 +385,10 @@ to handle the translation to and from <a href="/mongo-java-driver/3.5/bson/"><co
 <a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/PojoCodecProvider.html
 "><code>PojoCodecProvider.builder()</code></a> to create and configure a <code>CodecProvider</code>.</p>
 
-<p>The following example will combine a codec registry for the <code>Person</code> and <code>Address</code> POJOs, with the default codec registry:</p>
+<p>The following example will combine the default codec registry, with the <code>PojoCodecProvider</code> configured to automatically create <code>PojoCodecs</code>:</p>
 
-<pre><code class="language-java">CodecRegistry pojoCodecRegistry = fromRegistries(
-                fromProviders(PojoCodecProvider.builder().register(Person.class, Address.class).build()),
-                MongoClient.getDefaultCodecRegistry());
+<pre><code class="language-java">CodecRegistry pojoCodecRegistry = fromRegistries(MongoClient.getDefaultCodecRegistry(),
+                                        fromProviders(PojoCodecProvider.builder().automatic().build()));
 </code></pre>
 
 <h3 id="using-the-codecregistry">Using the CodecRegistry</h3>
@@ -362,6 +417,9 @@ to handle the translation to and from <a href="/mongo-java-driver/3.5/bson/"><co
 </code></pre>
 
 <h2 id="inserting-a-pojo-into-mongodb">Inserting a POJO into MongoDB</h2>
+
+<p>The codec registry will automatically try to create a <code>PojoCodec</code> for unknown classes. This allows you to use POJOs out of the
+box without any extra configuration. See the <a href="/mongo-java-driver/3.5/bson/pojos/">Bson POJO page</a> for information on configuring <code>PojoCodecs</code>.</p>
 
 <p>Before you can insert a POJO into MongoDB, you need a <code>MongoCollection</code> instance configured with the Pojo&rsquo;s type:</p>
 
@@ -460,8 +518,8 @@ To facilitate creating filter objects, Java driver provides the <a href="/mongo-
 
 <div class="admonition important">
 <h5 class="admonition-title">important</h5>
-<p>When querying POJOs you <em>must</em> query against the document field name and not the Pojo&rsquo;s field name.
-By default they are the same but it is possible to change how POJO field names are mapped.</p>
+<p>When querying POJOs you <em>must</em> query against the document field name and not the Pojo&rsquo;s property name.
+By default they are the same but it is possible to change how POJO property names are mapped.</p>
 
 </div>
 

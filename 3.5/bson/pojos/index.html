@@ -251,7 +251,7 @@
 
 <p>The 3.5 release of the driver adds POJO support via the <a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/PojoCodec.html
 "><code>PojoCodec</code></a>, which allows for
-direct serialization of POJOs to and from BSON. Internally, each <code>PojoCodec</code> utilizes a
+direct serialization of POJOs and Java Beans to and from BSON. Internally, each <code>PojoCodec</code> utilizes a
 <a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/ClassModel.html
 "><code>ClassModel</code></a> instance to store metadata about how the POJO should be serialized.</p>
 
@@ -260,25 +260,27 @@ direct serialization of POJOs to and from BSON. Internally, each <code>PojoCodec
 <ul>
 <li>The class of the POJO.</li>
 <li>A new instance factory. Handling the creation of new instances of the POJO. By default it requires the POJO to have an empty constructor.</li>
-<li>Field information, a list of <a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/FieldModel.html
-"><code>FieldModel</code></a> instances that contain all the field metadata. By default this includes all non static and non transient fields.</li>
-<li>An optional IdField. By default the <code>_id</code> or <code>id</code> field in the POJO.</li>
+<li>Property information, a list of <a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/PropertyModel.html
+"><code>PropertyModel</code></a> instances that contain all the
+property metadata. By default this includes; any public getter methods with any corresponding setter methods and any public fields.</li>
+<li>An optional IdProperty. By default the <code>_id</code> or <code>id</code> property in the POJO.</li>
 <li>Type data for the POJO and its fields to work around type erasure.</li>
 <li>An optional discriminator value. The discriminator is the value used to represent the POJO class being stored.</li>
-<li>An optional discriminator key. The document field name for the discriminator.</li>
+<li>An optional discriminator key. The document key name for the discriminator.</li>
 <li>The use discriminator flag. This determines if the discriminator should be serialized. By default it is off.
 <br /></li>
 </ul>
 
-<p>Each <code>FieldModel</code> includes:</p>
+<p>Each <code>PropertyModel</code> includes:</p>
 
 <ul>
-<li>The field name.</li>
-<li>The document field name, which is the key for the value when serialized to BSON. By default it is the same as the field name.</li>
+<li>The property name.</li>
+<li>The read name, the name of the property to use as the key when serializing into BSON.</li>
+<li>The write name, the name of the property to use as the key when deserializing from BSON.</li>
 <li>Type data, to work around type erasure.</li>
-<li>An optional <code>Codec</code> for the field. The codec allows for fine grained control over how the field is encoded and decoded.</li>
+<li>An optional <code>Codec</code> for the property. The codec allows for fine grained control over how the property is encoded and decoded.</li>
 <li>A serialization checker. This checks if the value should be serialized. By default, <code>null</code> values are not serialized.</li>
-<li>A field accessor. Used to access field values from the POJO instance.</li>
+<li>A property accessor. Used to access the property values from the POJO instance.</li>
 <li>Use discriminator flag, only used when serializing other POJOs. By default it is off. When on the <code>PojoCodecProvider</code> copies the
 <code>ClassModel</code> for the field&rsquo;s type and turns on the use discriminator flag. The corresponding <code>ClassModel</code> must be configured with a
 discriminator key and value.</li>
@@ -296,9 +298,11 @@ discriminator key and value.</li>
 
 <div class="admonition important">
 <h5 class="admonition-title">important</h5>
-<p>By default all POJOs <strong>must</strong> include an empty, no arguments, constructor.</p>
+<p>By default all POJOs <strong>must</strong> include a public or protected, empty, no arguments, constructor. The
+<a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/annotations/BsonCreator.html"><code>BsonCreator</code></a> annotation can be used to support constructors or
+public static methods to create new instances of a POJO.</p>
 
-<p>All fields in a POJO must have a <a href="/mongo-java-driver/3.5/bson/codecs/"><code>Codec</code></a> registered in the <code>CodecRegistry</code> so that their values can be
+<p>All properties in a POJO must have a <a href="/mongo-java-driver/3.5/bson/codecs/"><code>Codec</code></a> registered in the <code>CodecRegistry</code> so that their values can be
 encoded and decoded.</p>
 
 </div>
@@ -306,7 +310,11 @@ encoded and decoded.</p>
 
 <h2 id="pojo-support">POJO support</h2>
 
-<p>The entry point for POJO support is the <code>PojoCodecProvider</code>. New instances can be created via the
+<p>Automatic POJO support can be provided by setting <code>PojoCodecProvider.Builder#automatic(true)</code>, once built the <code>PojoCodecProvider</code> will
+automatically create a <code>PojoCodec</code> for any class that contains at least one serializable or deserializable
+property.</p>
+
+<p>The entry point for customisable POJO support is the <code>PojoCodecProvider</code>. New instances can be created via the
 <a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/PojoCodecProvider.html#builder
 "><code>PojoCodecProvider.builder()</code></a> method. The <code>builder</code> allows users to
 register any combination of:</p>
@@ -339,7 +347,7 @@ import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 
 // Create a CodecRegistry containing the PojoCodecProvider instance.
 CodecProvider pojoCodecProvider = PojoCodecProvider.builder().register(&quot;org.example.pojos&quot;).build();
-CodecRegistry pojoCodecRegistry = fromRegistries(fromProviders(pojoCodecProvider), defaultCodecRegistry);
+CodecRegistry pojoCodecRegistry = fromRegistries(defaultCodecRegistry, fromProviders(pojoCodecProvider));
 </code></pre>
 
 <div class="admonition tip">
@@ -366,18 +374,59 @@ Alternatively, using the full class name as the discriminator value will ensure 
  
     public Person() { }
     
-    public Person(final String firstName, final String lastName) { }
+    public Person(final String firstName, final String lastName) {  /* Set values... */ }
 
-    // Rest of implementation
+    public String getFirstName() {
+        return firstName;
+    }
+    
+    public void setFirstName(final String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+    
+    public void setLastName(final String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+    
+    public void setAddress(final Address address) {
+        this.address = address;
+    }
     
 }
 </code></pre>
 
 <p>The instance of <code>new Person(&quot;Ada&quot;, &quot;Lovelace&quot;);</code> would be serialized to the equivalent of <code>{ firstName: &quot;Ada&quot;, lastName: &quot;Lovelace&quot;}</code>.</p>
 
-<p>Notice the <code>address</code> field is omitted because it hasn&rsquo;t been set and has a <code>null</code> value. If the person instance contained an address, it
+<p>Notice the <code>address</code> property is omitted because it hasn&rsquo;t been set and has a <code>null</code> value. If the person instance contained an address, it
 would be stored as a sub document and use the <code>CodecRegistry</code> to look up the <code>Codec</code> for the <code>Address</code> class and use that to
 encode and decode the address value.</p>
+
+<div class="admonition note">
+<h5 class="admonition-title">note</h5>
+<h4 id="pojo-properties">POJO Properties</h4>
+
+<p>Properties are identified by <strong>public</strong> getter methods, <strong>public</strong> setter methods and <strong>public</strong> fields.</p>
+
+<p>Any properties with an underlying field that is transient or static will be ignored and not serialized or deserialized.</p>
+
+<p><strong>Serializing to BSON</strong></p>
+
+<p>If a public getter methods exists, it is used to obtain the value for the property, otherwise the field is used directly.</p>
+
+<p><strong>Deserializing from BSON</strong></p>
+
+<p>If a public setter method exists it is used to set the value, otherwise the field is set directly.</p>
+
+</div>
+
 
 <h3 id="generics-support">Generics support</h3>
 
@@ -403,11 +452,44 @@ public final class Tree extends GenericTree&lt;Integer, String&gt; {
 }
 </code></pre>
 
-<p>The <code>Tree</code> POJO is serializable because it doesn&rsquo;t have any unknown type parameters. The <code>left</code>, <code>right</code> and <code>genericClass</code> fields are all
-serializable because they are bound to the concrete types <code>Integer</code>, <code>String</code> and <code>Long</code>.</p>
+<p>The <code>Tree</code> POJO is serializable because it doesn&rsquo;t have any unknown type parameters. The <code>left</code>, <code>right</code> and <code>genericClass</code> properties are
+all serializable because they are bound to the concrete types <code>Integer</code>, <code>String</code> and <code>Long</code>.</p>
 
 <p>On their own, instances of <code>GenericTree</code> or <code>GenericClass</code> are not serializable by the <code>PojoCodec</code>. This is because the runtime type parameter
 information is erased by the JVM, and the type parameters cannot be specialized accurately.</p>
+
+<h3 id="enum-support">Enum support</h3>
+
+<p>Enums are fully supported. The <code>PojoCodec</code> uses the name of the enum constant as the property value. This is then converted back into an Enum
+value by the codec using the static <code>Enum.valueOf</code> method.</p>
+
+<p>Take the following example:</p>
+
+<pre><code class="language-Java">
+public enum Membership {
+    UNREGISTERED,
+    SUBSCRIBER,
+    PREMIUM
+}
+
+public class Person {
+    private String firstName;
+    private String lastName;
+    private Member membership = Member.UNREGISTERED;
+
+    public Person() { }
+
+    public Person(final String firstName, final String lastName, final Membership membership) { }
+
+    // Rest of implementation
+}
+</code></pre>
+
+<p>The instance of <code>new Person(&quot;Bryan&quot;, &quot;May&quot;, SUBSCRIBER);</code> would be serialized to the equivalent of
+<code>{ firstName: &quot;Bryan&quot;, lastName: &quot;May&quot;, membership: &quot;SUBSCRIBER&quot;}</code>.</p>
+
+<p>If you require an alternative representation of the Enum, you can override how a Enum is stored by registering a custom <code>Codec</code> for the
+Enum in the <code>CodecRegistry</code>.</p>
 
 <h3 id="conventions">Conventions</h3>
 
@@ -422,14 +504,13 @@ instances to be configured during the build stage and the creation of the <code>
 <li>The <a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/Conventions.html#ANNOTATION_CONVENTION
 "><code>ANNOTATION_CONVENTION</code></a>. Applies all the
 default annotations.</li>
-<li>The <a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/Conventions.html#CLASS_AND_FIELD_CONVENTION
-"><code>CLASS_AND_FIELD_CONVENTION</code></a>. Sets the
+<li>The <a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/Conventions.html#CLASS_AND_PROPERTY_CONVENTION
+"><code>CLASS_AND_PROPERTY_CONVENTION</code></a>. Sets the
     discriminator key if not set to <code>_t</code> and the discriminator value if not set to the ClassModels simple type name. Also, configures
-    the FieldModels. Sets the document field name if not set to the field name. If the <code>idField</code> isn&rsquo;t set and there is a field named
-    <code>_id</code> or <code>id</code> then it will be marked as the <code>idField</code>.</li>
+    the PropertyModels. If the <code>idProperty</code> isn&rsquo;t set and there is a property named <code>_id</code> or <code>id</code> then it will be marked as the <code>idProperty</code>.</li>
 <li>The <a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/Conventions.html#DEFAULT_CONVENTIONS
 "><code>DEFAULT_CONVENTIONS</code></a>, a list containing the
-<code>ANNOTATION_CONVENTION</code> and the <code>CLASS_AND_FIELD_CONVENTION</code>.</li>
+<code>ANNOTATION_CONVENTION</code> and the <code>CLASS_AND_PROPERTY_CONVENTION</code>.</li>
 <li>The <a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/Conventions.html#NO_CONVENTIONS
 "><code>NO_CONVENTIONS</code></a> an empty list.</li>
 </ul>
@@ -460,48 +541,59 @@ in their intent.</p>
 "><code>org.bson.codecs.pojo.annotations</code></a> package:</p>
 
 <ul>
-<li><a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/annotations/Discriminator.html
-"><code>Discriminator</code></a>, enables using a discriminator.
+<li><a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/annotations/BsonCreator.html
+"><code>BsonCreator</code></a>, marks a public constructor or a public static method as
+the creator for new instances of the class. Can be combined with the <code>BsonProperty</code> annotation to link the parameters with properties.</li>
+<li><a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/annotations/BsonDiscriminator.html
+"><code>BsonDiscriminator</code></a>, enables using a discriminator.
 Also allows for setting a custom discriminator key and value.</li>
-<li><a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/annotations/Id.html
-"><code>Id</code></a>, marks a field to be serialized as the <code>_id</code> field.</li>
-<li><a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/annotations/Property.html
-"><code>Property</code></a>. Allows for an alternative document field
+<li><a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/annotations/BsonId.html
+"><code>BsonId</code></a>, marks a property to be serialized as the <code>_id</code> property.</li>
+<li><a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/annotations/BsonIgnore.html
+"><code>BsonIgnore</code></a>, marks a property to be ignored. Can be used to
+configure if a property is serialized and / or deserialized.</li>
+<li><a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/annotations/BsonProperty.html
+"><code>BsonProperty</code></a>. Allows for an alternative document key
 name when converting the POJO field to BSON. Also, allows a field to turn on using a discriminator when storing a POJO value.</li>
 </ul>
+
+<p>Annotations can be applied to read and / or write contexts by configuring the getter / setter methods. Any annotations applied to a field
+are applied to both read and write contexts.</p>
 
 <p>Take the following <code>Person</code> class:</p>
 
 <pre><code class="language-java">import org.bson.codecs.pojo.annotations.*;
 
-@Discriminator
-public class Person {
-    @Id
-    private String personId;
-    private String firstName;
-    private String lastName;
-    @Property(useDiscriminator = true)
-    private Address address;
- 
-    // Rest of implementation
+@BsonDiscriminator
+public final class Person {
+    public String personId;
+    public String firstName;
+    public String lastName;
+    
+    @BsonProperty(useDiscriminator = true)
+    public Address addr;
+    
+    public Person(){
+    }
+
 }
 </code></pre>
 
-<p>Will produce BSON similar to:</p>
+<p>The <code>Person</code> POJO Will produce BSON similar to:</p>
 
 <pre><code class="language-json">{ &quot;_id&quot;: &quot;1234567890&quot;, &quot;_t&quot;: &quot;Person&quot;, &quot;firstName&quot;: &quot;Alan&quot;, &quot;lastName&quot;: &quot;Turing&quot;,
   &quot;address&quot;: { &quot;_t&quot;: &quot;Address&quot;, &quot;address&quot;: &quot;The Mansion&quot;, &quot;street&quot;: &quot;Sherwood Drive&quot;, 
                &quot;town&quot;: &quot;Bletchley&quot;, &quot;postcode&quot;: &quot;MK3 6EB&quot; } }
 </code></pre>
 
-<p>The <code>_id</code> field maps to the POJO&rsquo;s <code>personId</code> field. The <code>_t</code> field contains the discriminator and the <code>address</code> field also contains a
-discriminator.</p>
+<p>The getter methods are used to configure the document keys used when storing the data in MongoDB. The <code>_id</code> document key maps to the POJO&rsquo;s
+<code>personId</code> property. The <code>_t</code> field contains the discriminator and the <code>address</code> field also contains a discriminator.</p>
 
 <h2 id="advanced-configuration">Advanced configuration</h2>
 
 <p>For most scenarios there is no need for further configuration. However, there are some scenarios where custom configuration is required.</p>
 
-<h3 id="fields-with-abstract-or-interface-types">Fields with abstract or interface types.</h3>
+<h3 id="properties-with-abstract-or-interface-types">Properties with abstract or interface types.</h3>
 
 <p>If a POJO contains a field that has an abstract type or has an interface as its type, then a discriminator is required. The type and all
 subtypes / implementations need to be registered with the <code>PojoCodecProvider</code> so that values can be encoded and decoded correctly.</p>
@@ -520,22 +612,64 @@ ClassModel&lt;SubscriberUser&gt; subscriberUserModel = ClassModel.builder(Subscr
 
 PojoCodecProvider pojoCodecProvider = PojoCodecProvider.builder().register(userModel, freeUserModel, subscriberUserModel).build();
 
-CodecRegistry pojoCodecRegistry = fromRegistries(fromProviders(pojoCodecProvider), defaultCodecRegistry);
+CodecRegistry pojoCodecRegistry = fromRegistries(defaultCodecRegistry, fromProviders(pojoCodecProvider));
 </code></pre>
 
 <h3 id="supporting-pojos-without-no-args-constructors">Supporting POJOs without no args constructors</h3>
 
-<p>By default PojoCodecs only work with POJOs that have an empty, no arguments, constructor. POJOs with alternative constructors can be
-supported but require a custom implementation of the <a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/InstanceCreatorFactory.html
-"><code>InstanceCreatorFactory</code></a>,
-which can be set on the <code>ClassModelBuilder</code>.</p>
+<p>By default PojoCodecs work with POJOs that have an empty, no arguments, constructor. POJOs with alternative constructors are supported
+via the <code>ANNOTATION_CONVENTION</code> and the <code>@BsonCreator</code> annotation. Any parameters for the creator constructor should be annotated with the
+<code>@BsonProperty</code> annotation. Below is an example of a <code>Person</code> POJO that contains final fields that are set via the annotated constructor:</p>
+
+<pre><code class="language-java">import org.bson.codecs.pojo.annotations.*;
+
+@BsonDiscriminator
+public final class Person {
+    private final String pid;
+    private final String fName;
+    private final String lName;
+    
+    @BsonProperty(useDiscriminator = true)
+    private final Address addr;
+    
+    @BsonCreator
+    public Person(@BsonProperty(&quot;personId&quot;) final String personId, @BsonProperty(&quot;firstName&quot;) final String firstName,
+                  @BsonProperty(&quot;lastName&quot;) final String lastName, @BsonProperty(&quot;address&quot;) final Address address) {
+        this.pid = personId;
+        this.fName = firstName;
+        this.lName = lastName;
+        this.addr = address;
+    }
+
+    @Id
+    public String getPersonId() {
+        return pid;
+    }
+
+    public String getFirstName() {
+        return fName;
+    }
+
+    public String getLastName() {
+        return lName;
+    }
+
+    public String getAddress() {
+        return addr;
+    }
+}
+</code></pre>
 
 <h3 id="changing-what-is-serialized">Changing what is serialized</h3>
 
 <p>By default <code>null</code> values aren&rsquo;t serialized. This is controlled by the default implementation of the
 <a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/FieldSerialization.html
 "><code>FieldSerialization</code></a> interface. Custom implementations can be set on
-the <code>FieldModelBuilder</code> which is available from the <code>ClassModelBuilder</code>.</p>
+the <code>PropertyModelBuilder</code> which is available from the <code>ClassModelBuilder</code>.</p>
+
+<p>The <a href="/mongo-java-driver/3.5/javadoc?org/bson/codecs/pojo/annotations/BsonIgnore.html
+"><code>BsonIgnore</code></a> can be used along with the <code>DEFAULT_CONVENTIONS</code> to mark
+a property to be ignored when serializing and or deserializing.</p>
 <div id="btnv"><div class="pull-left">
   <a class="navigation prev" href="/mongo-java-driver/3.5/bson/codecs/">
       <i class="fa fa-long-arrow-left"> </i> Codec and CodecRegistry
@@ -555,12 +689,13 @@ the <code>FieldModelBuilder</code> which is available from the <code>ClassModelB
 <li><a href="#default-configuration">Default configuration</a>
 <ul>
 <li><a href="#generics-support">Generics support</a></li>
+<li><a href="#enum-support">Enum support</a></li>
 <li><a href="#conventions">Conventions</a></li>
 <li><a href="#annotations">Annotations</a></li>
 </ul></li>
 <li><a href="#advanced-configuration">Advanced configuration</a>
 <ul>
-<li><a href="#fields-with-abstract-or-interface-types">Fields with abstract or interface types.</a></li>
+<li><a href="#properties-with-abstract-or-interface-types">Properties with abstract or interface types.</a></li>
 <li><a href="#supporting-pojos-without-no-args-constructors">Supporting POJOs without no args constructors</a></li>
 <li><a href="#changing-what-is-serialized">Changing what is serialized</a></li>
 </ul></li>

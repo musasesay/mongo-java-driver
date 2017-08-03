@@ -325,14 +325,12 @@ simplistic, implementation of the <code>CommandListener</code> interface:</p>
 }                                                                                                                            
 </code></pre>
 
-<p>and an instance of <code>MongoClientSettings</code> configured with an instance of <code>TestCommandListener</code>:</p>
+<p>and an instance of <code>MongoClientOptions</code> configured with an instance of <code>TestCommandListener</code>:</p>
 
-<pre><code class="language-java">ClusterSettings clusterSettings = ...
-MongoClientSettings settings = MongoClientSettings.builder()
-                                       .clusterSettings(clusterSettings)
+<pre><code class="language-java">MongoClientOptions options = MongoClientOptions.builder()
                                        .addCommandListener(new TestCommandListener())
                                        .build();
-MongoClient client = MongoClients.create(settings);
+MongoClient client = new MongoClient(new ServerAddress(), options);
 </code></pre>
 
 <p>A <code>MongoClient</code> configured with these options will print a message to <code>System.out</code> before sending each command to a MongoDB server, and
@@ -344,7 +342,7 @@ another message upon either successful completion or failure of each command.</p
 <a href="https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring-monitoring.rst">SDAM Monitoring specification</a>,
 allowing an application to be notified when the driver detects changes to the topology of the MongoDB cluster to which it is connected.</p>
 
-<p>An application registers listeners with a <code>MongoClient</code> by configuring  <code>MongoClientSettings</code> with instances of classes that
+<p>An application registers listeners with a <code>MongoClient</code> by configuring  <code>MongoClientOptions</code> with instances of classes that
 implement any of the <a href="/mongo-java-driver/3.5/javadoc?com/mongodb/event/ClusterListener.html
 "><code>ClusterListener</code></a>,
  <a href="/mongo-java-driver/3.5/javadoc?com/mongodb/event/ServerListener.html
@@ -404,20 +402,16 @@ or <a href="/mongo-java-driver/3.5/javadoc?com/mongodb/event/ServerMonitorListen
 }
 </code></pre>
 
-<p>and an instance of <code>MongoClientSettings</code> configured with an instance of <code>TestClusterListener</code>:</p>
+<p>and an instance of <code>MongoClientOptions</code> configured with an instance of <code>TestClusterListener</code>:</p>
 
 <pre><code class="language-java">List&lt;ServerAddress&gt; seedList = ...
-ClusterSettings clusterSettings = ClusterSettings.builder()
-                                          .hosts(seedList)
-                                          .addClusterListener(new TestClusterListener(ReadPreference.secondary()))
-                                          .build();
-MongoClientSettings settings = MongoClientSettings.builder()
-                                       .clusterSettings(clusterSettings)
+MongoClientOptions options = MongoClientOptions.builder()
+                                       .addClusterListener(new TestClusterListener(ReadPreference.secondary()))
                                        .build();
-MongoClient client = MongoClients.create(settings);
+MongoClient client = new MongoClient(seedList, options);
 </code></pre>
 
-<p>A <code>MongoClient</code> configured with these settings will print a message to <code>System.out</code> when the MongoClient is created with these options,
+<p>A <code>MongoClient</code> configured with these options will print a message to <code>System.out</code> when the MongoClient is created with these options,
 and when that MongoClient is closed.  In addition, it will print a message when the client enters a state:</p>
 
 <ul>
@@ -426,6 +420,71 @@ and when that MongoClient is closed.  In addition, it will print a message when 
 <li>with an available server that will accept reads using the configured <code>ReadPreference</code></li>
 <li>without an available server that will accept reads using the configured <code>ReadPreference</code></li>
 </ul>
+
+<h1 id="connection-pool-monitoring">Connection Pool Monitoring</h1>
+
+<p>The driver supports monitoring of connection pool-related events.</p>
+
+<p>An application registers listeners with a <code>MongoClient</code> by configuring <code>MongoClientOptions</code> with instances of classes that
+implement the <a href="/mongo-java-driver/3.5/javadoc?com/mongodb/event/ConnectionPoolListener.html
+"><code>ConnectionPoolListener</code></a> interface.</p>
+
+<p>Consider the following, simplistic, example of a connection pool listener:</p>
+
+<pre><code class="language-java">public class TestConnectionPoolListener implements ConnectionPoolListener {
+    @Override
+    public void connectionPoolOpened(final ConnectionPoolOpenedEvent event) {
+        System.out.println(event);
+    }
+
+    @Override
+    public void connectionPoolClosed(final ConnectionPoolClosedEvent event) {
+        System.out.println(event);
+    }
+
+    @Override
+    public void connectionCheckedOut(final ConnectionCheckedOutEvent event) {
+        System.out.println(event);
+    }
+
+    @Override
+    public void connectionCheckedIn(final ConnectionCheckedInEvent event) {
+        System.out.println(event);
+    }
+
+    @Override
+    public void waitQueueEntered(final ConnectionPoolWaitQueueEnteredEvent event) {
+        System.out.println(event);
+    }
+
+    @Override
+    public void waitQueueExited(final ConnectionPoolWaitQueueExitedEvent event) {
+        System.out.println(event);
+    }
+
+    @Override
+    public void connectionAdded(final ConnectionAddedEvent event) {
+        System.out.println(event);
+    }
+
+    @Override
+    public void connectionRemoved(final ConnectionRemovedEvent event) {
+        System.out.println(event);
+    }
+}
+</code></pre>
+
+<p>and an instance of <code>MongoClientOptions</code> configured with an instance of <code>TestConnectionPoolListener</code>:</p>
+
+<pre><code class="language-java">List&lt;ServerAddress&gt; seedList = ...
+MongoClientOptions options = MongoClientOptions.builder()
+                                      .addConnectionPoolListener(new TestConnectionPoolListener())
+                                      .build();
+MongoClient client = new MongoClient(new ServerAddress(), options);
+</code></pre>
+
+<p>A <code>MongoClient</code> configured with these options will print a message to <code>System.out</code> for each connection pool-related event for each MongoDB
+server to which the MongoClient is connected.</p>
 <div id="btnv"><div class="pull-left">
   <a class="navigation prev" href="/mongo-java-driver/3.5/driver/reference/logging/">
       <i class="fa fa-long-arrow-left"> </i> Logging
@@ -438,6 +497,7 @@ and when that MongoClient is closed.  In addition, it will print a message when 
 <li><a href="#jmx-monitoring">JMX Monitoring</a></li>
 <li><a href="#command-monitoring">Command Monitoring</a></li>
 <li><a href="#cluster-monitoring">Cluster Monitoring</a></li>
+<li><a href="#connection-pool-monitoring">Connection Pool Monitoring</a></li>
 </ul>
 </nav></div></div>
 </div>

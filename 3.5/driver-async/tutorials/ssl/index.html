@@ -258,7 +258,7 @@ To use TLS/SSL, you must configure the asynchronous driver to use <a href="http:
 <div class="admonition note">
 <h5 class="admonition-title">Note</h5>
 <p>If your application requires Netty, it must explicitly add a dependency to
-Netty artifacts.  The driver is currently tested against Netty 4.0.</p>
+Netty artifacts.  The driver is currently tested against Netty 4.1.</p>
 
 </div>
 
@@ -280,7 +280,9 @@ Netty artifacts.  The driver is currently tested against Netty 4.0.</p>
 <h3 id="via-mongoclientsettings">Via <code>MongoClientSettings</code></h3>
 
 <p>To specify TLS/SSL with  <a href="/mongo-java-driver/3.5/javadoc?com/mongodb/async/client/MongoClientSettings.Builder.html#streamFactoryFactory-com.mongodb.connection.StreamFactoryFactory-
-"><code>MongoClientSettings</code></a> , set the <code>sslEnabled</code> property to <code>true</code>, and the stream factory to <a href="/mongo-java-driver/3.5/javadoc?com/mongodb/connection/netty/NettyStreamFactoryFactory.html
+"><code>MongoClientSettings</code></a> ,
+set the <code>sslEnabled</code> property to <code>true</code>, and the stream factory to
+<a href="/mongo-java-driver/3.5/javadoc?com/mongodb/connection/netty/NettyStreamFactoryFactory.html
 "><code>NettyStreamFactoryFactory</code></a>, as in</p>
 
 <pre><code class="language-java">
@@ -311,6 +313,17 @@ deprecated as of the 3.1 driver release.</p>
 
 </div>
 
+
+<p>To override the default <a href="https://docs.oracle.com/javase/8/docs/api/javax/net/ssl/SSLContext.html"><code>javax.net.ssl.SSLContext</code></a> used for SSL
+connections, set the <code>sslContext</code> property on the <code>SslSettings</code>, as in:</p>
+
+<pre><code class="language-java"> SSLContext sslContext = ...
+ SslSettings sslSettings = SslSettings.builder()
+                                      .enabled(true)
+                                      .sslContext(sslContext)
+                                      .build();
+ // Pass sslSettings to the MongoClientSettings.Builder
+</code></pre>
 
 <h2 id="disable-hostname-verification">Disable Hostname Verification</h2>
 

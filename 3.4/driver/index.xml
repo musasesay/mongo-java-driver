@@ -37,10 +37,12 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.gridfs.*;
 import com.mongodb.client.gridfs.model.*;
-
+import org.bson.Document;
+import org.bson.types.ObjectId;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.charset.StandardCharsets;
+import static com.mongodb.client.model.Filters.eq;
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;h2 id=&#34;connect-to-a-mongodb-deployment&#34;&gt;Connect to a MongoDB Deployment&lt;/h2&gt;
@@ -109,7 +111,7 @@ try {
 
     ObjectId fileId = gridFSBucket.uploadFromStream(&amp;quot;mongodb-tutorial&amp;quot;, streamToUploadFrom, options);
 } catch (FileNotFoundException e){
-    System.out.println(e.getMessage());
+   // handle exception
 }
 &lt;/code&gt;&lt;/pre&gt;
 
@@ -125,17 +127,19 @@ try {
 &lt;p&gt;The following example uploads into a &lt;code&gt;GridFSBucket&lt;/code&gt; via the returned &lt;code&gt;GridFSUploadStream&lt;/code&gt;:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;try {
-    GridFSUploadStream uploadStream = gridFSBucketFiles.openUploadStream(&amp;quot;mongodb-tutorial-2&amp;quot;, options);
+    GridFSUploadOptions options = new GridFSUploadOptions()
+                       .chunkSizeBytes(358400)
+                       .metadata(new Document(&amp;quot;type&amp;quot;, &amp;quot;presentation&amp;quot;));
+
+    GridFSUploadStream uploadStream = gridFSFilesBucket.openUploadStream(&amp;quot;mongodb-tutorial-2&amp;quot;, options);
     byte[] data = Files.readAllBytes(new File(&amp;quot;/tmp/MongoDB-manual-master.pdf&amp;quot;).toPath());
 
     uploadStream.write(data);
     uploadStream.close();
-    System.out.println(&amp;quot;The fileId of the uploaded file is: &amp;quot; + uploadStream.getFileId().toHexString());
+    System.out.println(&amp;quot;The fileId of the uploaded file is: &amp;quot; + uploadStream.getObjectId().toHexString());
 
-} catch (FileNotFoundException e1){
-    System.out.println(e1.getMessage());
-} catch(IOException e2){
-    System.out.println(e2.getMessage());
+} catch(IOException e){
+    // handle exception
 }
 &lt;/code&gt;&lt;/pre&gt;
 
@@ -177,10 +181,17 @@ try {
 following example downloads a file by its file &lt;code&gt;_id&lt;/code&gt; into the provided
 &lt;code&gt;OutputStream&lt;/code&gt;:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;FileOutputStream streamToDownloadTo = new FileOutputStream(&amp;quot;/tmp/mongodb-tutorial.pdf&amp;quot;);
-gridFSBucket.downloadToStream(fileId, streamToDownloadTo);
-streamToDownloadTo.close();
-System.out.println(streamToDownloadTo.toString());
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;ObjectId fileId; //The id of a file uploaded to GridFS, initialize to valid file id 
+
+try {
+    FileOutputStream streamToDownloadTo = new FileOutputStream(&amp;quot;/tmp/mongodb-tutorial.pdf&amp;quot;);
+    gridFSBucket.downloadToStream(fileId, streamToDownloadTo);
+    streamToDownloadTo.close();
+    System.out.println(streamToDownloadTo.toString());
+} catch (IOException e) {
+    // handle exception
+}
+
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;If you don&amp;rsquo;t know the &lt;code&gt;_id&lt;/code&gt; of the file but know the filename, then you can pass the filename to the &lt;a href=&#34;/mongo-java-driver/3.4/mongo-java-driver/3.4/javadoc?com/mongodb/client/gridfs/GridFSBucket.html#downloadToStream-java.lang.String-java.io.OutputStream-com.mongodb.client.gridfs.model.GridFSDownloadOptions-
@@ -189,10 +200,15 @@ System.out.println(streamToDownloadTo.toString());
 
 &lt;p&gt;The following example downloads the original version of the file named &amp;ldquo;mongodb-tutorial&amp;rdquo; into the &lt;code&gt;OutputStream&lt;/code&gt;:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;FileOutputStream streamToDownloadTo = new FileOutputStream(&amp;quot;/tmp/mongodb-tutorial.pdf&amp;quot;);
-GridFSDownloadOptions downloadOptions = new GridFSDownloadOptions().revision(0);
-gridFSBucket.downloadToStream(&amp;quot;mongodb-tutorial&amp;quot;, streamToDownloadTo, downloadOptions);
-streamToDownloadTo.close();   
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;try {
+    FileOutputStream streamToDownloadTo = new FileOutputStream(&amp;quot;/tmp/mongodb-tutorial.pdf&amp;quot;);
+    GridFSDownloadOptions downloadOptions = new GridFSDownloadOptions().revision(0);
+    gridFSBucket.downloadToStream(&amp;quot;mongodb-tutorial&amp;quot;, streamToDownloadTo, downloadOptions);
+    streamToDownloadTo.close();
+} catch (IOException e) {
+   // handle exception
+}
+
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;h3 id=&#34;opendownloadstream&#34;&gt;OpenDownloadStream&lt;/h3&gt;
@@ -203,7 +219,9 @@ streamToDownloadTo.close();
 
 &lt;p&gt;The following example reads from the &lt;code&gt;GridFSBucket&lt;/code&gt; via the returned &lt;code&gt;InputStream&lt;/code&gt;:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;GridFSDownloadStream downloadStream = gridFSBucket.openDownloadStream(fileId);
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;ObjectId fileId; //The id of a file uploaded to GridFS, initialize to valid file id 
+
+GridFSDownloadStream downloadStream = gridFSBucket.openDownloadStream(fileId);
 int fileLength = (int) downloadStream.getGridFSFile().getLength();
 byte[] bytesToWriteTo = new byte[fileLength];
 downloadStream.read(bytesToWriteTo);
@@ -234,7 +252,9 @@ System.out.println(new String(bytesToWriteTo, StandardCharsets.UTF_8));
 
 &lt;p&gt;The following example renames a file to &amp;ldquo;mongodbTutorial&amp;rdquo;:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;gridFSBucket.rename(fileId, &amp;quot;mongodbTutorial&amp;quot;);
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;ObjectId fileId; //ObjectId of a file uploaded to GridFS
+
+gridFSBucket.rename(fileId, &amp;quot;mongodbTutorial&amp;quot;);
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;&lt;div class=&#34;admonition note&#34;&gt;
@@ -253,7 +273,9 @@ System.out.println(new String(bytesToWriteTo, StandardCharsets.UTF_8));
 
 &lt;p&gt;The following example deletes a file from the &lt;code&gt;GridFSBucket&lt;/code&gt;:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;gridFSBucket.delete(fileId);
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;ObjectId fileId; //ObjectId of a file uploaded to GridFS
+
+gridFSBucket.delete(fileId);
 &lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
@@ -278,7 +300,8 @@ System.out.println(new String(bytesToWriteTo, StandardCharsets.UTF_8));
 
 &lt;li&gt;&lt;p&gt;Include the following import statements:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt; import com.mongodb.MongoClient;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt; import com.mongodb.Block;
+ import com.mongodb.MongoClient;
  import com.mongodb.client.MongoCollection;
  import com.mongodb.client.MongoDatabase;
  import com.mongodb.client.MongoCursor;
@@ -935,7 +958,7 @@ collection.insertMany(documents);
 &#34;&gt;&lt;code&gt;upsert&lt;/code&gt;&lt;/a&gt; option or the &lt;a href=&#34;http://docs.mongodb.org/manual/core/document-validation/#bypass-document-validation
 &#34;&gt;&lt;code&gt;bypassDocumentationValidation&lt;/code&gt;&lt;/a&gt; option.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;results = collection.replaceOne(
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;collection.replaceOne(
                 eq(&amp;quot;name&amp;quot;, &amp;quot;Orange Patisserie and Gelateria&amp;quot;),
                 new Document(&amp;quot;stars&amp;quot;, 5)
                         .append(&amp;quot;contact&amp;quot;, &amp;quot;TBD&amp;quot;)
@@ -1077,6 +1100,9 @@ collection.insertMany(documents);
  import com.mongodb.client.model.Accumulators;
  import com.mongodb.client.model.Projections;
  import com.mongodb.client.model.Filters;
+
+
+ import org.bson.Document;
 &lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
 
 &lt;li&gt;&lt;p&gt;Include the following code which the examples in the tutorials will use to print the results of the aggregation:&lt;/p&gt;
@@ -1189,7 +1215,8 @@ The Java driver provides the &lt;a href=&#34;/mongo-java-driver/3.4/mongo-java-d
 
 &lt;li&gt;&lt;p&gt;Include the following import statements:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt; import com.mongodb.MongoClient;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt; import com.mongodb.Block;
+ import com.mongodb.MongoClient;
  import com.mongodb.client.MongoCollection;
  import com.mongodb.client.MongoDatabase;
 
@@ -1198,6 +1225,7 @@ The Java driver provides the &lt;a href=&#34;/mongo-java-driver/3.4/mongo-java-d
  import com.mongodb.client.model.Filters;
  import com.mongodb.client.model.Sorts;
  import com.mongodb.client.model.TextSearchOptions;
+ import com.mongodb.client.model.Projections;
  import org.bson.Document;
 &lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
 
@@ -1630,7 +1658,7 @@ documents for the various MongoDB Index key types.&lt;/p&gt;
  import org.bson.Document;
 
 
- import com.mongodb.client.model.Indexes.;
+ import com.mongodb.client.model.Indexes;
  import com.mongodb.client.model.IndexOptions;
  import com.mongodb.client.model.Filters;
 &lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
@@ -2002,15 +2030,17 @@ create a credential of this type use the
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;String user;     // The X.509 certificate derived user name, e.g. &amp;quot;CN=user,OU=OrgUnit,O=myOrg,...&amp;quot;
 // ...
 MongoCredential credential = MongoCredential.createMongoX509Credential(user);
+MongoClientOptions options = MongoClientOptions.builder().sslEnabled(true).build();
+
 
 MongoClient mongoClient = new MongoClient(new ServerAddress(&amp;quot;host1&amp;quot;, 27017),
-                                         Arrays.asList(credential));
+                                         Arrays.asList(credential), options);
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Or use a connection string that explicitly specifies the
 &lt;code&gt;authMechanism=MONGODB-X509&lt;/code&gt;:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;MongoClientURI uri = new MongoClientURI(&amp;quot;mongodb://subjectName@host1/?authMechanism=MONGODB-X509&amp;quot;);
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;MongoClientURI uri = new MongoClientURI(&amp;quot;mongodb://subjectName@host1/?authMechanism=MONGODB-X509&amp;amp;ssl=true&amp;quot;);
 MongoClient mongoClient = new MongoClient(uri);
 &lt;/code&gt;&lt;/pre&gt;
 
@@ -2037,7 +2067,7 @@ MongoCredential credential = MongoCredential.createGSSAPICredential(user);
 &lt;p&gt;Or use a connection string that explicitly specifies the
 &lt;code&gt;authMechanism=GSSAPI&lt;/code&gt;:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;MongoClientURI uri = new MongoClientURI(&amp;quot;mongodb://username%40REALM.com@host1/?authMechanism=GSSAPI&amp;quot;);
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;MongoClientURI uri = new MongoClientURI(&amp;quot;mongodb://username%40REALM.ME@host1/?authMechanism=GSSAPI&amp;quot;);
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;&lt;div class=&#34;admonition note&#34;&gt;
@@ -2228,7 +2258,8 @@ MongoClient constructors, see
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.ServerAddress;
-import com.mongodb.MongoCredential
+import com.mongodb.MongoCredential;
+import com.mongodb.MongoClientOptions;
 
 
 import java.util.Arrays;
@@ -2524,7 +2555,7 @@ collection.bulkWrite(
 
 &lt;pre&gt;&lt;code&gt;&amp;lt;module xmlns=&amp;quot;urn:jboss:module:1.3&amp;quot; name=&amp;quot;org.mongodb&amp;quot;&amp;gt;
    &amp;lt;resources&amp;gt;
-       &amp;lt;resource-root path=&amp;quot;mongo-java-driver-3.4.0-beta1.jar&amp;quot;/&amp;gt;
+       &amp;lt;resource-root path=&amp;quot;mongo-java-driver-3.4.3.jar&amp;quot;/&amp;gt;
    &amp;lt;/resources&amp;gt;
    &amp;lt;dependencies&amp;gt;
        &amp;lt;module name=&amp;quot;javax.api&amp;quot;/&amp;gt;
